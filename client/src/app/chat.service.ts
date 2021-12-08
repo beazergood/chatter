@@ -24,6 +24,7 @@ export class ChatService {
   }
 
   public connectToApi(): Observable<any> {
+    alert('connectToApi')
     let headers = new HttpHeaders()
     headers.set('Access-Control-Allow-Origin', '*')
     headers.set('connection', 'Upgrade')
@@ -73,8 +74,8 @@ export class ChatService {
   //   this.socket$.complete()
   // }
 
-  public onSendMessage(ev: any) {
-    console.log('chat service send this message ', ev)
-    return
-  }
+  // public onSendMessage(ev: any) {
+  //   console.log('chat service send this message ', ev)
+  //   return
+  // }
 }

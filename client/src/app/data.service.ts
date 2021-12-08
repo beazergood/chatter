@@ -1,47 +1,61 @@
 import { Injectable } from '@angular/core'
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket'
 import { environment } from '../environments/environment'
-import { catchError, tap, switchAll } from 'rxjs/operators'
-import { EMPTY, Subject } from 'rxjs'
+import { tap } from 'rxjs/operators'
+import { BehaviorSubject, Subject } from 'rxjs'
 export const WS_ENDPOINT = environment.wsEndpoint
-class Message {
-  constructor(
-    public sender: string,
-    public content: string,
-    public isBroadcast = false
-  ) {}
+
+export interface Message {
+  name: string
+  message: string
+  time: Date
+  isBroadcast: boolean
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class DataService {
-  private socket$: WebSocketSubject<Message> = webSocket(WS_ENDPOINT)
-
-  private messagesSubject$ = new Subject()
-  public messages$ = this.messagesSubject$.asObservable()
+  private socket$: WebSocketSubject<any> = webSocket(WS_ENDPOINT) // works
+  private _messages: BehaviorSubject<any> = new BehaviorSubject([])
+  public messages$ = this._messages.asObservable()
+  public serverMessages = new Array<Message>()
 
   constructor() {
-    console.log('Data Service under construction ')
-    console.log(this.socket$)
-    const messages = this.socket$
-      .pipe
-      // tap({
-      //   error: (error) => console.log(error),
-      // }),
-      // catchError((_) => EMPTY)
-      ()
-      .subscribe({
-        next: (data) => console.log('[Live component] Next: ', data),
-        error: (error) => console.log('[Live component] Error:', error),
-        complete: () => console.log('[Live component] Connection Closed'),
-      })
-    this.messagesSubject$.next(messages)
+    this.socket$
+      .pipe(
+        tap({
+          next: (data) => console.log('[Live observable] Next: ', data),
+          error: (error) => console.log('[Live observable] Error:', error),
+          complete: () => console.log('[Live observable] Connection Closed'),
+        })
+        // catchError((_) => EMPTY)
+      )
+      .subscribe(
+        (message) => {
+          console.log(
+            'message from server being pushed to client array: ',
+            JSON.parse(JSON.stringify(message))
+          )
+          // why is message an Array Buffer?!
+          this.serverMessages.push(JSON.parse(JSON.stringify(message)))
+        },
+        (err) => console.error(err),
+        () => console.warn('Completed!')
+      )
   }
 
-  sendMessage(msg: any) {
-    console.log('sending message: ', msg)
-    this.messagesSubject$.next(msg)
+  sendMessage(msgStr: any) {
+    console.log('sending message: ', msgStr)
+    const msg = {
+      message: msgStr,
+      name: 'Dave B',
+      isBroadcast: false,
+      time: new Date(),
+    }
+    // this.serverMessages.push(msg)
+    this.socket$.next(msg)
+    console.log('serverMessages: ', this.serverMessages)
   }
 
   close() {

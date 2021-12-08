@@ -1,0 +1,28 @@
+{
+  "editor.formatOnSave": true,
+  "javascript.format.semicolons": "remove",
+  "typescript.format.semicolons": "remove",
+  "typescriptHero.imports.insertSemicolons": false,
+  "typescript.preferences.quoteStyle": "single",
+  "javascript.preferences.quoteStyle": "single",
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#796aff",
+    "activityBar.activeBorder": "#9f1000",
+    "activityBar.background": "#796aff",
+    "activityBar.foreground": "#e7e7e7",
+    "activityBar.inactiveForeground": "#e7e7e799",
+    "activityBarBadge.background": "#9f1000",
+    "activityBarBadge.foreground": "#e7e7e7",
+    "sash.hoverBorder": "#796aff",
+    "statusBar.background": "#4b37ff",
+    "statusBar.foreground": "#e7e7e7",
+    "statusBarItem.hoverBackground": "#796aff",
+    "statusBarItem.remoteBackground": "#4b37ff",
+    "statusBarItem.remoteForeground": "#e7e7e7",
+    "titleBar.activeBackground": "#4b37ff",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveBackground": "#4b37ff99",
+    "titleBar.inactiveForeground": "#e7e7e799"
+  },
+  "peacock.color": "#4b37ff"
+}

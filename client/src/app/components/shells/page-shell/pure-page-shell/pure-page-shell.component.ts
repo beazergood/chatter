@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core'
-import { Message } from '../../../organisms/chat/chat.component'
-import { Participant } from '../../../organisms/participants/participants.component'
+import { Message } from '../../../chat/chat.component'
+import { Participant } from '../../../participants/participants.component'
 
 @Component({
   selector: 'app-pure-page-shell',
@@ -18,8 +18,8 @@ import { Participant } from '../../../organisms/participants/participants.compon
               'bg-white': openTab === 1
             }"
           >
-            <i class="fas fa-space-shuttle text-base mr-1"></i> Participants (
-            {{ participants?.length }})
+            <i class="fas fa-space-shuttle text-base mr-1"></i>
+            Chat
           </a>
         </li>
         <li class="mr-2 last:mr-0 flex-auto text-center">
@@ -31,7 +31,9 @@ import { Participant } from '../../../organisms/participants/participants.compon
               'bg-white': openTab === 2
             }"
           >
-            <i class="fas fa-cog text-base mr-1"></i> Chat
+            <i class="fas fa-cog text-base mr-1"></i>
+            Participants (
+            {{ participants?.length }})
           </a>
         </li>
       </ul>
@@ -41,16 +43,16 @@ import { Participant } from '../../../organisms/participants/participants.compon
         <div class="px-4 py-5 flex-auto">
           <div class="tab-content tab-space">
             <div [ngClass]="{ hidden: openTab !== 1, block: openTab === 1 }">
-              <app-participants
-                [participants]="participants"
-              ></app-participants>
-            </div>
-            <div [ngClass]="{ hidden: openTab !== 2, block: openTab === 2 }">
               <app-chat
                 [messages]="messages"
                 (onSendMessage)="onSendMessage.emit($event)"
               >
               </app-chat>
+            </div>
+            <div [ngClass]="{ hidden: openTab !== 2, block: openTab === 2 }">
+              <app-participants
+                [participants]="participants"
+              ></app-participants>
             </div>
           </div>
         </div>
@@ -59,7 +61,7 @@ import { Participant } from '../../../organisms/participants/participants.compon
   `,
 })
 export default class PurePageShellComponent {
-  @Input() messages?: Message[]
+  @Input() messages?: any
   @Input() participants?: Participant[]
   @Output() onSendMessage: EventEmitter<any> = new EventEmitter()
 
