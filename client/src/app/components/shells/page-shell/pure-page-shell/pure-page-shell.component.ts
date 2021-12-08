@@ -1,6 +1,6 @@
-import { Component, Input } from '@angular/core'
-import { Message } from '../../chat/chat.component'
-import { Participant } from '../../participants/participants.component'
+import { Component, Input, Output, EventEmitter } from '@angular/core'
+import { Message } from '../../../organisms/chat/chat.component'
+import { Participant } from '../../../organisms/participants/participants.component'
 
 @Component({
   selector: 'app-pure-page-shell',
@@ -46,7 +46,11 @@ import { Participant } from '../../participants/participants.component'
               ></app-participants>
             </div>
             <div [ngClass]="{ hidden: openTab !== 2, block: openTab === 2 }">
-              <app-chat [messages]="messages"> </app-chat>
+              <app-chat
+                [messages]="messages"
+                (onSendMessage)="onSendMessage.emit($event)"
+              >
+              </app-chat>
             </div>
           </div>
         </div>
@@ -57,6 +61,7 @@ import { Participant } from '../../participants/participants.component'
 export default class PurePageShellComponent {
   @Input() messages?: Message[]
   @Input() participants?: Participant[]
+  @Output() onSendMessage: EventEmitter<any> = new EventEmitter()
 
   openTab = 1
   toggleTabs($tabNumber: number) {

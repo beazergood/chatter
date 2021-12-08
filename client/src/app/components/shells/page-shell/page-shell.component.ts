@@ -2,13 +2,17 @@ import { Component } from '@angular/core'
 import { Observable } from 'rxjs'
 import { ChatService } from 'src/app/chat.service'
 import { DataService } from 'src/app/data.service'
-import { Message } from '../chat/chat.component'
-import { Participant } from '../participants/participants.component'
+import { Message } from '../../organisms/chat/chat.component'
+import { Participant } from '../../organisms/participants/participants.component'
 
 @Component({
   selector: 'app-page-shell',
   template: `
-    <app-pure-page-shell [messages]="messages" [participants]="participants">
+    <app-pure-page-shell
+      [messages]="messages"
+      [participants]="participants"
+      (onSendMessage)="chatSvc.onSendMessage($event)"
+    >
     </app-pure-page-shell>
   `,
 })

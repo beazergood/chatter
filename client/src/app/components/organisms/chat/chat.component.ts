@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core'
+import { Component, Input, Output, EventEmitter } from '@angular/core'
 
 export interface Message {
   name: string
@@ -22,9 +22,13 @@ export interface Message {
           <p>{{ msg.message }}</p>
         </div>
       </ng-container>
+      <app-message-form
+        (sendMessage)="onSendMessage.emit($event)"
+      ></app-message-form>
     </div>
   `,
 })
 export default class ChatComponent {
   @Input() messages?: Message[]
+  @Output() onSendMessage: EventEmitter<any> = new EventEmitter()
 }

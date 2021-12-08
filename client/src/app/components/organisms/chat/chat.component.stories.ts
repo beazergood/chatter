@@ -1,14 +1,26 @@
-import { Story, Meta } from '@storybook/angular'
+import { action } from '@storybook/addon-actions'
+import { Story, Meta, moduleMetadata } from '@storybook/angular'
+import MessageFormComponent from '../../molecules/message-form/message-form.component'
 import ChatComponent from './chat.component'
 
 export default {
-  title: 'Components/Chat',
+  title: 'Components/Organisms/Chat',
   component: ChatComponent,
+  decorators: [
+    moduleMetadata({
+      declarations: [ChatComponent, MessageFormComponent],
+    }),
+  ],
 } as Meta
+
+export const actionsData = {
+  onSendMessage: action('onSendMessage'),
+}
 
 const Template: Story<ChatComponent> = (args: ChatComponent) => ({
   props: {
     ...args,
+    onSendMessage: actionsData.onSendMessage,
   },
 })
 // Default scenario

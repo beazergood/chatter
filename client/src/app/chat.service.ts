@@ -72,4 +72,9 @@ export class ChatService {
   // close() {
   //   this.socket$.complete()
   // }
+
+  public onSendMessage(ev: any) {
+    console.log('chat service send this message ', ev)
+    return
+  }
 }

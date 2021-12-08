@@ -2,7 +2,7 @@ import { Story, Meta } from '@storybook/angular'
 import ParticipantsComponent, { Participant } from './participants.component'
 
 export default {
-  title: 'Components/Participants',
+  title: 'Components/Organisms/Participants',
   component: ParticipantsComponent,
   argTypes: {
     label: { control: 'string' },

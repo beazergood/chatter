@@ -1,7 +1,8 @@
 import { setCompodocJson } from '@storybook/addon-docs/angular'
 import docJson from '../documentation.json'
-// import "../src/styles.scss";
+// import '../src/styles.scss'
 import 'tailwindcss/tailwind.css'
+
 setCompodocJson(docJson)
 
 export const parameters = {
