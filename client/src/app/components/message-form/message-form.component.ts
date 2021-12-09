@@ -22,7 +22,7 @@ import { Component, EventEmitter, Output } from '@angular/core'
         <div class="flex content-center">
           <span class="flex-1"></span>
           <button
-            class="p-2 rounded-md shadow-md w-64 bg-blue-300"
+            class="p-2 w-full rounded-md shadow-md md:w-64 bg-purple-400 text-white"
             type="submit"
             (click)="sendMessage.emit({message})"
           >
