@@ -16,8 +16,8 @@ function createWebsocketServer() {
       JSON.stringify({
         isBroadcast: true,
         time: new Date(),
-        name: 'Dave',
-        message: 'hello world from socket server',
+        name: 'Chabot',
+        message: 'Welcome to le chat',
       })
     )
   })
