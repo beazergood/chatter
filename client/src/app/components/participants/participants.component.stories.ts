@@ -4,6 +4,7 @@ import ParticipantsComponent, { Participant } from './participants.component'
 export default {
   title: 'Components/Organisms/Participants',
   component: ParticipantsComponent,
+  excludeStories: /.*Data$/,
   argTypes: {
     label: { control: 'string' },
   },

@@ -5,6 +5,7 @@ import MessageFormComponent from './message-form.component'
 export default {
   title: 'Components/Molecules/MessageFormComponent',
   component: MessageFormComponent,
+  excludeStories: /.*Data$/,
 } as Meta
 
 export const actionsData = {

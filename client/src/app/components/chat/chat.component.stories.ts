@@ -4,8 +4,9 @@ import MessageFormComponent from '../message-form/message-form.component'
 import ChatComponent from './chat.component'
 
 export default {
-  title: 'Components/Chat',
+  title: 'Components/Organisms/Chat',
   component: ChatComponent,
+  excludeStories: /.*Data$/,
   decorators: [
     moduleMetadata({
       declarations: [ChatComponent, MessageFormComponent],

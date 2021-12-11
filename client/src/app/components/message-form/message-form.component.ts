@@ -4,8 +4,6 @@ import { Component, EventEmitter, Output } from '@angular/core'
   selector: 'app-message-form',
   template: `
     <div class="flex flex-row mt-10">
-      <div class="w-64"></div>
-
       <div class="bg-gray-200 shadow-md rounded px-8 pt-6 pb-8 mb-4 flex-1">
         <form (submit)="submitForm()">
           <div class="mb-4">
@@ -31,7 +29,6 @@ import { Component, EventEmitter, Output } from '@angular/core'
           <span class="flex-1"></span>
         </div>
       </div>
-      <div class="w-64"></div>
     </div>
   `,
 })

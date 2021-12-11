@@ -12,7 +12,7 @@ export interface Message {
 @Component({
   selector: 'app-chat',
   template: `
-    <div class="flex flex-col">
+    <div class="flex flex-col flex-1">
       <ng-template #noChat>No chat</ng-template>
       <ng-container *ngIf="messages?.length; else noChat">
         <div *ngFor="let msg of messages" class="py-2 border-b border-gray-100">
@@ -24,13 +24,9 @@ export interface Message {
           <p>isBroadcast: {{ msg.isBroadcast }}</p>
         </div>
       </ng-container>
-      <app-message-form
-        (sendMessage)="onSendMessage.emit($event)"
-      ></app-message-form>
     </div>
   `,
 })
 export default class ChatComponent {
   @Input() messages?: Message[]
-  @Output() onSendMessage: EventEmitter<any> = new EventEmitter()
 }

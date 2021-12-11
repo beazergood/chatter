@@ -1,11 +1,10 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core'
-import { Message } from '../../../chat/chat.component'
 import { Participant } from '../../../participants/participants.component'
 
 @Component({
   selector: 'app-pure-page-shell',
   template: `
-    <div class="w-full">
+    <div class="w-full flex flex-col h-screen">
       <h1 class="text-center bg-gray-200 py-6">{{ title }}</h1>
 
       <ul class="flex mb-0 list-none flex-wrap pb-4 flex-row">
@@ -37,23 +36,28 @@ import { Participant } from '../../../participants/participants.component'
           </a>
         </li>
       </ul>
-      <div
-        class="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 "
-      >
-        <div class="px-4 py-5 flex-auto">
-          <div class="tab-content tab-space">
-            <div [ngClass]="{ hidden: openTab !== 1, block: openTab === 1 }">
-              <app-chat
-                [messages]="messages"
-                (onSendMessage)="onSendMessage.emit($event)"
-              >
-              </app-chat>
-            </div>
-            <div [ngClass]="{ hidden: openTab !== 2, block: openTab === 2 }">
-              <app-participants
-                [participants]="participants"
-              ></app-participants>
-            </div>
+
+      <div class="relative flex flex-col min-w-0 break-words flex-1 w-full p-4">
+        <div class="flex flex-col flex-1 p-1">
+          <div
+            [ngClass]="{
+              hidden: openTab !== 1,
+              block: openTab === 1
+            }"
+            class="flex flex-col flex-1"
+          >
+            <app-chat
+              [messages]="messages"
+              (onSendMessage)="onSendMessage.emit($event)"
+            >
+            </app-chat>
+            <div class="flex-1"></div>
+            <app-message-form
+              (sendMessage)="onSendMessage.emit($event)"
+            ></app-message-form>
+          </div>
+          <div [ngClass]="{ hidden: openTab !== 2, block: openTab === 2 }">
+            <app-participants [participants]="participants"></app-participants>
           </div>
         </div>
       </div>
