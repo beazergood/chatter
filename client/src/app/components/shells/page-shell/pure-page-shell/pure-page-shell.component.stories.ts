@@ -2,9 +2,10 @@ import { moduleMetadata, Story, Meta } from '@storybook/angular'
 import { CommonModule } from '@angular/common'
 
 import PurePageShellComponent from './pure-page-shell.component'
-import ChatComponent from '../../../chat-feed/chat-feed.component'
+import ChatFeedComponent from '../../../chat-feed/chat-feed.component'
 import ParticipantsComponent from '../../../participants/participants.component'
 import MessageFormComponent from '../../../message-form/message-form.component'
+import ChatItemComponent from 'src/app/components/chat-item/chat-item.component'
 import { DefaultChatFeed } from '../../../chat-feed/chat-feed.component.stories'
 import { DefaultParticipants } from '../../../participants/participants.component.stories'
 import { action } from '@storybook/addon-actions'
@@ -17,7 +18,8 @@ export default {
   decorators: [
     moduleMetadata({
       declarations: [
-        ChatComponent,
+        ChatFeedComponent,
+        ChatItemComponent,
         ParticipantsComponent,
         MessageFormComponent,
       ],
