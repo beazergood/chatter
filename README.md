@@ -20,4 +20,4 @@ Tools & libraries core to my development workflow include:
 ## Server Express App
 Starts a websocket using ws package and emits messages over a socket.
 - written in Typescript
-- uses Nodemon and Concurrently to both compile Typescript changes and refresh server on changes.
+- uses Nodemon to compile Typescript changes and refresh server on changes.
