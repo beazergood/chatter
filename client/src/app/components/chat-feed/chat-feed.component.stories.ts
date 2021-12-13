@@ -41,21 +41,21 @@ DefaultChatFeed.args = {
     },
     {
       _id: '34',
-      _userId: '23',
+      _userId: '00',
       _created: new Date(), //'15:22',
       name: 'Meetingbot',
       message: 'Peng Mok joined.',
     },
     {
       _id: '12',
-      _userId: '23',
+      _userId: '00',
       _created: new Date(), //'15:23',
       name: 'Meetingbot',
       message: 'Lars Bergendahl joined.',
     },
     {
       _id: '12',
-      _userId: '23',
+      _userId: '34',
       _created: new Date(), //'15:24',
       name: 'Lars Bergendahl',
       message:
@@ -63,21 +63,21 @@ DefaultChatFeed.args = {
     },
     {
       _id: '12',
-      _userId: '23',
+      _userId: '77',
       _created: new Date(), //'15:24',
       name: 'Tom Erik Lia',
       message: 'Looks like I have another meeting, please email notes to me',
     },
     {
       _id: '12',
-      _userId: '23',
+      _userId: '00',
       _created: new Date(), //'15:24',
       name: 'Meetingbot',
       message: 'Tom Erik Lia left.',
     },
     {
       _id: '12',
-      _userId: '23',
+      _userId: '11',
       _created: new Date(), //'15:25',
       name: 'Krzystof Grzeslo',
       message:
