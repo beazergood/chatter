@@ -32,3 +32,7 @@ https://rxjs.dev/api/webSocket/webSocket#examples
 
 ws server broadcast: https://github.com/websockets/ws#server-broadcast
 
+Storybook Interactions enable you to write play functions to bring user interactions to your stories: 
+https://storybook.js.org/docs/react/essentials/interactions
+
+Testing library is used under the covers for interactions: https://testing-library.com/docs/
