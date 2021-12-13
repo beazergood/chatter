@@ -7,6 +7,7 @@ export interface Message {
   _userId: string
   _created: Date
   _modified?: Date
+  _deleted?: Date
   name: string
   message: string
 }

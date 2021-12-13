@@ -13,6 +13,7 @@ import { Participant } from '../../../data.interfaces'
       [userId]="userId$ | async"
       (onSendMessage)="dataSvc.sendMessage($event)"
       (onEditMessage)="dataSvc.editMessage($event)"
+      (onDeleteMessage)="dataSvc.deleteMessage($event)"
     >
     </app-pure-page-shell>
   `,

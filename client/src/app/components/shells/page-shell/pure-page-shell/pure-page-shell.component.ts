@@ -48,12 +48,13 @@ import { Participant } from '../../../../data.interfaces'
             <app-chat-feed
               [messages]="messages"
               [userId]="userId"
-              (saveChanges)="onEditMessage.emit($event)"
+              (onSaveEdit)="onEditMessage.emit($event)"
+              (onDeleteMessage)="onDeleteMessage.emit($event)"
             >
             </app-chat-feed>
             <div class="flex-1"></div>
             <app-message-form
-              (sendMessage)="onSendMessage.emit($event)"
+              (onSendMessage)="onSendMessage.emit($event)"
             ></app-message-form>
           </div>
 
@@ -77,6 +78,7 @@ export default class PurePageShellComponent {
 
   @Output() onSendMessage: EventEmitter<any> = new EventEmitter()
   @Output() onEditMessage: EventEmitter<any> = new EventEmitter()
+  @Output() onDeleteMessage: EventEmitter<any> = new EventEmitter()
 
   openTab = 1
   toggleTabs($tabNumber: number) {

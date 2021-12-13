@@ -14,6 +14,8 @@ export class ChatStore extends ComponentStore<ChatState> {
     super({ messages: [] })
   }
 
+  // TODO plumb in NGRX component store to get more experience using that!
+
   // Each new call of sendMessage(msg) pushes that msg into message$ stream.
   // readonly sendMessage = this.effect((message$: Observable<string>) => {
   // return message$.pipe(

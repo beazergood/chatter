@@ -16,7 +16,8 @@ import { Message } from '../../data.interfaces'
         <app-chat-item
           [msg]="msg"
           [userId]="userId"
-          (saveChanges)="saveChanges.emit($event)"
+          (onSaveEdit)="onSaveEdit.emit($event)"
+          (onDeleteMessage)="onDeleteMessage.emit($event)"
         ></app-chat-item>
       </div>
     </ng-container>
@@ -25,7 +26,8 @@ import { Message } from '../../data.interfaces'
 export default class ChatFeedComponent {
   @Input() messages?: Message[]
   @Input() userId?: string
-  @Output() saveChanges: EventEmitter<any> = new EventEmitter()
+  @Output() onSaveEdit: EventEmitter<any> = new EventEmitter()
+  @Output() onDeleteMessage: EventEmitter<any> = new EventEmitter()
 
   identify(index: number, item: any) {
     return item._id

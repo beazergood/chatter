@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core'
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket'
-import { tap } from 'rxjs/operators'
-import { BehaviorSubject, Observable } from 'rxjs'
+import { tap, mergeMap } from 'rxjs/operators'
+import { BehaviorSubject, Observable, of } from 'rxjs'
 import { Participant, WS_ENDPOINT } from './data.interfaces'
 
 @Injectable({
@@ -29,17 +29,16 @@ export class DataService {
           next: (data) => console.log('[Live observable] Next: ', data),
           error: (error) => console.log('[Live observable] Error:', error),
           complete: () => console.log('[Live observable] Connection Closed'),
+        }),
+        mergeMap((data) => {
+          const socketData = JSON.parse(JSON.stringify(data))
+          console.log('mergeMap: data = ', data)
+          return of(this.processSocketData(data))
         })
       )
       .subscribe(
         (data) => {
-          console.log(
-            'message from server being pushed to client array: ',
-            JSON.parse(JSON.stringify(data))
-          )
-
-          const socketData = JSON.parse(JSON.stringify(data))
-          this.processSocketData(socketData)
+          console.log('message from server received on client ')
         },
         (err) => console.error(err),
         () => console.warn('Completed!')
@@ -51,21 +50,21 @@ export class DataService {
     this.updateMessagesFeed(socketData)
   }
 
-  private createParticipant(socketData: any): void {
-    this._currentUserId.next(socketData._newUserId)
-  }
-
   private updateMessagesFeed(socketData: any) {
     // process any deletions/edits as well as add new messages to the chat feed
-    // TODO update the serverMessages array to reflect any edits
     if (socketData._newMessage || socketData._newUserId) {
+      delete socketData._newMessage
       this.serverMessages.push(socketData)
-    } else if (socketData._editedMessage) {
+    } else if (socketData._modified || socketData._deleted) {
       const targetIx = this.serverMessages.findIndex(
         (msg) => msg._id === socketData._id
       )
       console.log('targetIx: ', targetIx)
       this.serverMessages[targetIx] = socketData
+      if (socketData._deleted) {
+        delete this.serverMessages[targetIx]._modified
+        this.serverMessages[targetIx].message = 'Deleted'
+      }
     }
   }
 
@@ -77,30 +76,30 @@ export class DataService {
     let updatedParticipantsList
 
     if (socketData.newConnection) {
-      this.createParticipant(socketData)
+      this.addNewLocalUser(socketData)
     }
 
-    console.log(
-      'existing participant, add if not already present in: ',
-      this.participantsList
-    )
     var index = this.participantsList.findIndex((x) => x._id == userData._id)
 
-    index === -1 // not in list, add object to local array
-      ? (updatedParticipantsList = this.participantsList.concat([userData])) // this.participantsList with userData in it
-      : (updatedParticipantsList = this.participantsList) // just existing participantsList
+    index === -1 // not in list, add user to local array
+      ? (updatedParticipantsList = this.participantsList.concat([userData])) // concat user into array
+      : (updatedParticipantsList = this.participantsList) // user already in local array
 
-    console.log('😎😎 updatedParticipantsList: ', updatedParticipantsList)
     this._participants.next(updatedParticipantsList)
+    this.participantsList = updatedParticipantsList
+  }
+
+  private addNewLocalUser(socketData: any): void {
+    this._currentUserId.next(socketData._newUserId)
   }
 
   sendMessage(msg: any) {
     const serverPayload = {
-      ...msg,
-      _created: new Date(),
-      _userId: this._currentUserId.getValue(),
-      _editedMessage: false,
-      _newMessage: true,
+      message: {
+        ...msg,
+        _userId: this._currentUserId.getValue(),
+      },
+      control: 'add',
     }
     console.log('sending message: ', serverPayload)
     this._websocket.next(serverPayload)
@@ -108,12 +107,23 @@ export class DataService {
 
   editMessage(msg: any) {
     const serverPayload = {
-      ...msg,
-      _modified: new Date(),
-      _editedMessage: true,
-      _newMessage: false,
+      message: {
+        ...msg,
+      },
+      control: 'edit',
     }
     console.log('editMessage: ', serverPayload)
+    this._websocket.next(serverPayload)
+  }
+
+  deleteMessage(msg: any) {
+    const serverPayload = {
+      message: {
+        ...msg,
+      },
+      control: 'delete',
+    }
+    console.log('deleteMessage: ', serverPayload)
     this._websocket.next(serverPayload)
   }
 

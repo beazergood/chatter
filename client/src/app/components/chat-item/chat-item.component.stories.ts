@@ -17,13 +17,14 @@ export default {
 } as Meta
 
 export const actionsData = {
-  onSendMessage: action('onSendMessage'),
+  onSaveEdit: action('onSaveEdit'),
+  onDeleteMessage: action('onDeleteMessage'),
 }
 
 const Template: Story<ChatItemComponent> = (args: ChatItemComponent) => ({
   props: {
     ...args,
-    onSendMessage: actionsData.onSendMessage,
+    onSaveEdit: actionsData.onSaveEdit,
   },
 })
 // Default scenario
@@ -39,6 +40,19 @@ DefaultChatItem.args = {
   },
 }
 
+export const EditingChatItem = Template.bind({})
+EditingChatItem.args = {
+  msg: {
+    _id: '12',
+    _userId: '23',
+    _created: new Date(), //'15:21',
+    name: 'Michel Sagen',
+    message:
+      "Waiting for a few more before we begin, I'm keeping my microphone muted for now as I had beans for breakfast 😉",
+  },
+  editing: true,
+}
+
 export const EditedChatItem = Template.bind({})
 EditedChatItem.args = {
   msg: {
@@ -49,6 +63,18 @@ EditedChatItem.args = {
     name: 'Michel Sagen',
     message:
       "Waiting for a few more before we begin, I'm keeping my microphone muted for now as I had beans for breakfast 😉",
+  },
+}
+
+export const DeletedChatItem = Template.bind({})
+DeletedChatItem.args = {
+  msg: {
+    _id: '12',
+    _userId: '23',
+    _created: new Date(), //'15:21',
+    _deleted: new Date(), //'15:21',
+    name: 'Michel Sagen',
+    message: 'Deleted',
   },
 }
 

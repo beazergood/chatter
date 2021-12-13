@@ -8,28 +8,32 @@ function createWebsocketServer() {
     ws._id = uid()
 
     ws.on('message', function message(data: any, isBinary: boolean) {
-      console.log('ws._id: ', ws._id)
       const messageId = uid()
-      console.log('messageId: ', messageId)
+
       wss.clients.forEach(function each(client) {
         if (client.readyState === WebSocket.OPEN) {
           const parsedMessage = JSON.parse(data.toString())
 
           let clientMessage
-          if (parsedMessage._newMessage) {
+          if (parsedMessage.control === 'add') {
             // new message, broadcast out
-            console.log('we are ADDING a new message....')
             clientMessage = {
-              ...parsedMessage,
-              size: wss.clients.size,
+              ...parsedMessage.message,
+              _created: new Date(),
               _id: messageId,
+              _newMessage: true,
             }
-          } else if (parsedMessage._editedMessage) {
+          } else if (parsedMessage.control === 'edit') {
             // a specific message has been edited. broadcast the change so clients can update their feed
-            console.log('we are EDITING a message....')
             clientMessage = {
-              ...parsedMessage,
-              size: wss.clients.size,
+              ...parsedMessage.message,
+              _modified: new Date(),
+            }
+          } else if (parsedMessage.control === 'delete') {
+            // message deleted. add delete date and broadcast
+            clientMessage = {
+              ...parsedMessage.message,
+              _deleted: new Date(),
             }
           }
 

@@ -60,7 +60,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms'
   `,
 })
 export default class MessageFormComponent {
-  @Output() sendMessage: EventEmitter<any> = new EventEmitter()
+  @Output() onSendMessage: EventEmitter<any> = new EventEmitter()
 
   name: string = ''
   message: string = ''
@@ -75,7 +75,7 @@ export default class MessageFormComponent {
 
   submit(): void {
     console.log('submitting form : ', this.messageForm.value)
-    this.sendMessage.emit(this.messageForm.value)
+    this.onSendMessage.emit(this.messageForm.value)
     this.afterSubmit()
   }
 

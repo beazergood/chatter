@@ -18,13 +18,13 @@ export default {
 } as Meta
 
 export const actionsData = {
-  sendMessage: action('sendMessage'),
+  onSendMessage: action('onSendMessage'),
 }
 
 const Template: Story<MessageFormComponent> = (args: MessageFormComponent) => ({
   props: {
     ...args,
-    sendMessage: actionsData.sendMessage,
+    onSendMessage: actionsData.onSendMessage,
   },
 })
 // Default scenario

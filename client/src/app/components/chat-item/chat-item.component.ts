@@ -13,6 +13,9 @@ import { Message } from 'src/app/data.interfaces'
           <span class="pl-1 ml-1 text-xs text-gray-400" *ngIf="msg._modified"
             >&nbsp; (edited)</span
           >
+          <span class="pl-1 ml-1 text-xs text-gray-400" *ngIf="msg._deleted"
+            >&nbsp; (deleted)</span
+          >
         </p>
         <p *ngIf="!editing">{{ msg.message }}</p>
         <ng-container *ngIf="editing">
@@ -53,13 +56,13 @@ import { Message } from 'src/app/data.interfaces'
 export default class ChatItemComponent implements OnInit {
   @Input() msg!: Message
   @Input() userId?: string
-  @Output() saveChanges: EventEmitter<any> = new EventEmitter()
-
-  editing: boolean = false
+  @Output() onSaveEdit: EventEmitter<any> = new EventEmitter()
+  @Output() onDeleteMessage: EventEmitter<any> = new EventEmitter()
 
   msgForm: FormGroup = this.fb.group({
     message: [''],
   })
+  editing: boolean = false
 
   constructor(private fb: FormBuilder) {}
 
@@ -80,6 +83,10 @@ export default class ChatItemComponent implements OnInit {
       message: this.msgForm.controls.message.value,
     }
     console.log('editPayload: ', editPayload)
-    this.saveChanges.emit(editPayload)
+    if (editPayload.message === '' && confirm('Wanna delete this message?')) {
+      this.onDeleteMessage.emit(editPayload)
+    } else {
+      this.onSaveEdit.emit(editPayload)
+    }
   }
 }
