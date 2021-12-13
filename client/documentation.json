@@ -2,31 +2,45 @@
     "pipes": [],
     "interfaces": [
         {
-            "name": "Message",
-            "id": "interface-Message-7e1723a7ef2903472e08dffa3f71fb35df4d2305dc3877eaf3cef5dcbcc95ccf779a23e065c89f8e30cb600f6e7fa871450c8e808e7b4cf0bd97e7f93babeb59",
-            "file": "src/app/data.service.ts",
+            "name": "ChatState",
+            "id": "interface-ChatState-4587b35b1d1f85bff8cf2d7e3d4040f08adae1fb763d8558a500ee83c32d8a1c080913f560e4162e3d13c2c1b18ba2da6375478bf734000bd509fd6663e7a753",
+            "file": "src/app/chat.store.ts",
             "deprecated": false,
             "deprecationMessage": "",
             "type": "interface",
-            "sourceCode": "import { Injectable } from '@angular/core'\nimport { webSocket, WebSocketSubject } from 'rxjs/webSocket'\nimport { environment } from '../environments/environment'\nimport { tap } from 'rxjs/operators'\nimport { BehaviorSubject, Subject } from 'rxjs'\nexport const WS_ENDPOINT = environment.wsEndpoint\n\nexport interface Message {\n  name: string\n  message: string\n  time: Date\n  isBroadcast: boolean\n}\n\n@Injectable({\n  providedIn: 'root',\n})\nexport class DataService {\n  private socket$: WebSocketSubject<any> = webSocket(WS_ENDPOINT) // works\n  private _messages: BehaviorSubject<any> = new BehaviorSubject([])\n  public messages$ = this._messages.asObservable()\n  public serverMessages = new Array<Message>()\n\n  constructor() {\n    this.socket$\n      .pipe(\n        tap({\n          next: (data) => console.log('[Live observable] Next: ', data),\n          error: (error) => console.log('[Live observable] Error:', error),\n          complete: () => console.log('[Live observable] Connection Closed'),\n        })\n        // catchError((_) => EMPTY)\n      )\n      .subscribe(\n        (message) => {\n          console.log(\n            'message from server being pushed to client array: ',\n            JSON.parse(JSON.stringify(message))\n          )\n          // why is message an Array Buffer?!\n          this.serverMessages.push(JSON.parse(JSON.stringify(message)))\n        },\n        (err) => console.error(err),\n        () => console.warn('Completed!')\n      )\n  }\n\n  sendMessage(msgStr: any) {\n    console.log('sending message: ', msgStr)\n    const msg = {\n      message: msgStr,\n      name: 'Dave B',\n      isBroadcast: false,\n      time: new Date(),\n    }\n    // this.serverMessages.push(msg)\n    this.socket$.next(msg)\n    console.log('serverMessages: ', this.serverMessages)\n  }\n\n  close() {\n    this.socket$.complete()\n  }\n}\n",
+            "sourceCode": "import { Injectable } from '@angular/core'\nimport { ComponentStore } from '@ngrx/component-store'\nimport { Observable, switchMap } from 'rxjs'\nimport { DataService } from './data.service'\nimport { Message } from './data.interfaces'\n\nexport interface ChatState {\n  messages: Message[]\n}\n\n@Injectable()\nexport class ChatStore extends ComponentStore<ChatState> {\n  constructor(private dataSvc: DataService) {\n    super({ messages: [] })\n  }\n\n  // Each new call of sendMessage(msg) pushes that msg into message$ stream.\n  // readonly sendMessage = this.effect((message$: Observable<string>) => {\n  // return message$.pipe(\n  //   // 👇 Handle race condition with the proper choice of the flattening operator.\n  //   switchMap((msg) => this.dataSvc.sendMessage(msg).pipe(\n  //     //👇 Act on the result within inner pipe.\n  //     tap({\n  //       next: (msg) => this.addMsg(msg),\n  //       error: (e) => console.error(e),\n  //     }),\n  //     // 👇 Handle potential error within inner pipe.\n  //     catchError(() => EMPTY),\n  //   )),\n  // );\n  // })\n}\n",
             "properties": [
                 {
-                    "name": "isBroadcast",
+                    "name": "messages",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "type": "boolean",
+                    "type": "Message[]",
                     "optional": false,
                     "description": "",
-                    "line": 12
-                },
+                    "line": 8
+                }
+            ],
+            "indexSignatures": [],
+            "kind": 165,
+            "methods": []
+        },
+        {
+            "name": "CurrentUser",
+            "id": "interface-CurrentUser-fab148a1f8ca1d4bb8358fd30ce7bace036c45ae18c544a1e88b3be43d6c87de6a46e9e62032d13c063de8800946864280015abc3f4bff45ae2404bef4943aa3",
+            "file": "src/app/data.interfaces.ts",
+            "deprecated": false,
+            "deprecationMessage": "",
+            "type": "interface",
+            "sourceCode": "import { environment } from '../environments/environment'\n\nexport const WS_ENDPOINT = environment.wsEndpoint\n\nexport interface Message {\n  _id: string\n  _userId: string\n  _created: Date\n  _modified?: Date\n  name: string\n  message: string\n}\n\nexport interface Participant {\n  _id: string\n  name: string\n}\n\nexport interface CurrentUser {\n  _id: string\n  name: string\n}\n",
+            "properties": [
                 {
-                    "name": "message",
+                    "name": "_id",
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "string",
                     "optional": false,
                     "description": "",
-                    "line": 10
+                    "line": 20
                 },
                 {
                     "name": "name",
@@ -35,16 +49,7 @@
                     "type": "string",
                     "optional": false,
                     "description": "",
-                    "line": 9
-                },
-                {
-                    "name": "time",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "Date",
-                    "optional": false,
-                    "description": "",
-                    "line": 11
+                    "line": 21
                 }
             ],
             "indexSignatures": [],
@@ -53,19 +58,46 @@
         },
         {
             "name": "Message",
-            "id": "interface-Message-a2a8f7f75d42a2ce1dac72da544b895e5e87a5f77abe88b6bd6757b3ac1256c113f9c364948bb26cedd801d2b1b43950f50a24165c5ca5aee4169fc736b93954-1",
-            "file": "src/app/components/chat/chat.component.ts",
+            "id": "interface-Message-fab148a1f8ca1d4bb8358fd30ce7bace036c45ae18c544a1e88b3be43d6c87de6a46e9e62032d13c063de8800946864280015abc3f4bff45ae2404bef4943aa3",
+            "file": "src/app/data.interfaces.ts",
             "deprecated": false,
             "deprecationMessage": "",
             "type": "interface",
-            "sourceCode": "import { Component, Input, Output, EventEmitter } from '@angular/core'\n\nexport interface Message {\n  name: string\n  time: Date\n  message: string\n  isBroadcast?: boolean\n}\n/***\n * @description shows a feed of chat messages\n */\n@Component({\n  selector: 'app-chat',\n  template: `\n    <div class=\"flex flex-col\">\n      <ng-template #noChat>No chat</ng-template>\n      <ng-container *ngIf=\"messages?.length; else noChat\">\n        <div *ngFor=\"let msg of messages\" class=\"py-2 border-b border-gray-100\">\n          <p>\n            <span class=\"font-semibold mr-2\">{{ msg.name }}</span>\n            <span class=\"text-gray-400\">{{ msg.time | date: 'HH:mm' }}</span>\n          </p>\n          <p>message: {{ msg.message }}</p>\n          <p>isBroadcast: {{ msg.isBroadcast }}</p>\n        </div>\n      </ng-container>\n      <app-message-form\n        (sendMessage)=\"onSendMessage.emit($event)\"\n      ></app-message-form>\n    </div>\n  `,\n})\nexport default class ChatComponent {\n  @Input() messages?: Message[]\n  @Output() onSendMessage: EventEmitter<any> = new EventEmitter()\n}\n",
+            "sourceCode": "import { environment } from '../environments/environment'\n\nexport const WS_ENDPOINT = environment.wsEndpoint\n\nexport interface Message {\n  _id: string\n  _userId: string\n  _created: Date\n  _modified?: Date\n  name: string\n  message: string\n}\n\nexport interface Participant {\n  _id: string\n  name: string\n}\n\nexport interface CurrentUser {\n  _id: string\n  name: string\n}\n",
             "properties": [
                 {
-                    "name": "isBroadcast",
+                    "name": "_created",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "type": "boolean",
+                    "type": "Date",
+                    "optional": false,
+                    "description": "",
+                    "line": 8
+                },
+                {
+                    "name": "_id",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "optional": false,
+                    "description": "",
+                    "line": 6
+                },
+                {
+                    "name": "_modified",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Date",
                     "optional": true,
+                    "description": "",
+                    "line": 9
+                },
+                {
+                    "name": "_userId",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "optional": false,
                     "description": "",
                     "line": 7
                 },
@@ -76,7 +108,7 @@
                     "type": "string",
                     "optional": false,
                     "description": "",
-                    "line": 6
+                    "line": 11
                 },
                 {
                     "name": "name",
@@ -85,51 +117,39 @@
                     "type": "string",
                     "optional": false,
                     "description": "",
-                    "line": 4
-                },
-                {
-                    "name": "time",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "Date",
-                    "optional": false,
-                    "description": "",
-                    "line": 5
+                    "line": 10
                 }
             ],
             "indexSignatures": [],
             "kind": 165,
-            "methods": [],
-            "isDuplicate": true,
-            "duplicateId": 1,
-            "duplicateName": "Message-1"
+            "methods": []
         },
         {
             "name": "Participant",
-            "id": "interface-Participant-6f9ab5a1a8c14c59a34a80a95ad846baa7ecf42f294851ee98eeebec79f18aacc9eb95655a733532296d96ff132009ece12dc05a3926917e06dba66e830a4f99",
-            "file": "src/app/components/participants/participants.component.ts",
+            "id": "interface-Participant-fab148a1f8ca1d4bb8358fd30ce7bace036c45ae18c544a1e88b3be43d6c87de6a46e9e62032d13c063de8800946864280015abc3f4bff45ae2404bef4943aa3",
+            "file": "src/app/data.interfaces.ts",
             "deprecated": false,
             "deprecationMessage": "",
             "type": "interface",
-            "sourceCode": "import { Component, Input } from '@angular/core'\nexport const participantsData = [\n  {\n    firstname: 'Elon',\n    lastname: 'Musk',\n  },\n  {\n    firstname: 'Jeff',\n    lastname: 'Bezos',\n  },\n  {\n    firstname: 'JB',\n    lastname: 'Straubel',\n  },\n  {\n    firstname: 'Reid',\n    lastname: 'Hoffman',\n  },\n]\n\nexport interface Participant {\n  firstname: string\n  lastname: string\n}\n\n@Component({\n  selector: 'app-participants',\n  template: `\n    <div class=\"p-2\">\n      <ng-container *ngIf=\"participants\">\n        <ul class=\"w-100\">\n          <li\n            *ngFor=\"let participant of participants\"\n            class=\"p-4 border-b border-gray-200\"\n          >\n            {{ participant.firstname }} {{ participant.lastname }}\n          </li>\n        </ul>\n      </ng-container>\n    </div>\n  `,\n})\nexport default class ParticipantsComponent {\n  @Input() participants?: Participant[]\n}\n",
+            "sourceCode": "import { environment } from '../environments/environment'\n\nexport const WS_ENDPOINT = environment.wsEndpoint\n\nexport interface Message {\n  _id: string\n  _userId: string\n  _created: Date\n  _modified?: Date\n  name: string\n  message: string\n}\n\nexport interface Participant {\n  _id: string\n  name: string\n}\n\nexport interface CurrentUser {\n  _id: string\n  name: string\n}\n",
             "properties": [
                 {
-                    "name": "firstname",
+                    "name": "_id",
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "string",
                     "optional": false,
                     "description": "",
-                    "line": 22
+                    "line": 15
                 },
                 {
-                    "name": "lastname",
+                    "name": "name",
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "string",
                     "optional": false,
                     "description": "",
-                    "line": 23
+                    "line": 16
                 }
             ],
             "indexSignatures": [],
@@ -151,44 +171,16 @@
     ],
     "injectables": [
         {
-            "name": "ChatService",
-            "id": "injectable-ChatService-2fec69e43c901a7be3dc83e904f21cfd1f0f3ab9c4b2611a8babed13110cc71aaad8b3f14f928eb97a102fb77805bad624c50899af89829511270334887b4dba",
-            "file": "src/app/chat.service.ts",
-            "properties": [
-                {
-                    "name": "subject$",
-                    "defaultValue": "webSocket(WS_ENDPOINT)",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "any",
-                    "optional": false,
-                    "description": "",
-                    "line": 16,
-                    "modifierKind": [
-                        121
-                    ]
-                }
-            ],
-            "methods": [
-                {
-                    "name": "connectToApi",
-                    "args": [],
-                    "optional": false,
-                    "returnType": "Observable<any>",
-                    "typeParameters": [],
-                    "line": 26,
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "modifierKind": [
-                        123
-                    ]
-                }
-            ],
+            "name": "ChatStore",
+            "id": "injectable-ChatStore-4587b35b1d1f85bff8cf2d7e3d4040f08adae1fb763d8558a500ee83c32d8a1c080913f560e4162e3d13c2c1b18ba2da6375478bf734000bd509fd6663e7a753",
+            "file": "src/app/chat.store.ts",
+            "properties": [],
+            "methods": [],
             "deprecated": false,
             "deprecationMessage": "",
             "description": "",
             "rawdescription": "\n",
-            "sourceCode": "import { Injectable } from '@angular/core'\nimport { HttpClient } from '@angular/common/http'\nimport { HttpHeaders } from '@angular/common/http'\nimport { webSocket } from 'rxjs/webSocket'\nimport { environment } from '../environments/environment'\nimport { Observable } from 'rxjs'\n\nexport const WS_ENDPOINT = environment.wsEndpoint\n\n@Injectable({\n  providedIn: 'root',\n})\nexport class ChatService {\n  // private socket$: WebSocketsubject$<any>\n\n  private subject$: any = webSocket(WS_ENDPOINT)\n\n  constructor(private http: HttpClient) {\n    // this.subject$.subscribe(\n    //   (msg) => console.log('message received: ' + msg), // Called whenever there is a message from the server.\n    //   (err) => console.log(err), // Called if at any point WebSocket API signals some kind of error.\n    //   () => console.log('complete') // Called when connection is closed (for whatever reason).\n    // )\n  }\n\n  public connectToApi(): Observable<any> {\n    alert('connectToApi')\n    let headers = new HttpHeaders()\n    headers.set('Access-Control-Allow-Origin', '*')\n    headers.set('connection', 'Upgrade')\n\n    console.log('callings connectToApi')\n    return this.http.post('http://localhost:5001/websockets', '', {\n      headers: headers,\n    })\n  }\n  // private messagessubject$$ = new subject$()\n  // public messages$ = this.messagessubject$$.pipe(switchAll(), catchError(e => { throw e }));\n\n  // public connect(): void {\n  //   if (!this.socket$ || this.socket$.closed) {\n  //     this.socket$ = this.getNewWebSocket()\n  //     const messages = this.socket$.pipe(\n  //       tap({\n  //         error: (error) => console.log(error),\n  //       }),\n  //       catchError((_) => EMPTY)\n  //     )\n  //     this.messagessubject$$.next(messages)\n  //   }\n\n  // private subject$: webSocket(WS_ENDPOINT)\n\n  // subject$.subscribe()\n  // Note that at least one consumer has to subscribe to the created subject$ - otherwise \"nexted\" values will be just buffered and not sent,\n  // since no connection was established!\n\n  // subject$.next({ message: 'some message' })\n  // This will send a message to the server once a connection is made. Remember value is serialized with JSON.stringify by default!\n\n  // subject$.complete() // Closes the connection.\n\n  // subject$.error({ code: 4000, reason: 'I think our app just broke!' })\n  // Also closes the connection, but let's the server know that this closing is caused by some error.\n  // }\n\n  // private getNewWebSocket() {\n  //   return webSocket(WS_ENDPOINT)\n  // }\n  // sendMessage(msg: any) {\n  //   this.socket$.next(msg)\n  // }\n  // close() {\n  //   this.socket$.complete()\n  // }\n\n  // public onSendMessage(ev: any) {\n  //   console.log('chat service send this message ', ev)\n  //   return\n  // }\n}\n",
+            "sourceCode": "import { Injectable } from '@angular/core'\nimport { ComponentStore } from '@ngrx/component-store'\nimport { Observable, switchMap } from 'rxjs'\nimport { DataService } from './data.service'\nimport { Message } from './data.interfaces'\n\nexport interface ChatState {\n  messages: Message[]\n}\n\n@Injectable()\nexport class ChatStore extends ComponentStore<ChatState> {\n  constructor(private dataSvc: DataService) {\n    super({ messages: [] })\n  }\n\n  // Each new call of sendMessage(msg) pushes that msg into message$ stream.\n  // readonly sendMessage = this.effect((message$: Observable<string>) => {\n  // return message$.pipe(\n  //   // 👇 Handle race condition with the proper choice of the flattening operator.\n  //   switchMap((msg) => this.dataSvc.sendMessage(msg).pipe(\n  //     //👇 Act on the result within inner pipe.\n  //     tap({\n  //       next: (msg) => this.addMsg(msg),\n  //       error: (e) => console.error(e),\n  //     }),\n  //     // 👇 Handle potential error within inner pipe.\n  //     catchError(() => EMPTY),\n  //   )),\n  // );\n  // })\n}\n",
             "constructorObj": {
                 "name": "constructor",
                 "description": "",
@@ -196,17 +188,17 @@
                 "deprecationMessage": "",
                 "args": [
                     {
-                        "name": "http",
-                        "type": "HttpClient",
+                        "name": "dataSvc",
+                        "type": "DataService",
                         "deprecated": false,
                         "deprecationMessage": ""
                     }
                 ],
-                "line": 16,
+                "line": 12,
                 "jsdoctags": [
                     {
-                        "name": "http",
-                        "type": "HttpClient",
+                        "name": "dataSvc",
+                        "type": "DataService",
                         "deprecated": false,
                         "deprecationMessage": "",
                         "tagName": {
@@ -215,13 +207,27 @@
                     }
                 ]
             },
+            "extends": "ComponentStore",
             "type": "injectable"
         },
         {
             "name": "DataService",
-            "id": "injectable-DataService-7e1723a7ef2903472e08dffa3f71fb35df4d2305dc3877eaf3cef5dcbcc95ccf779a23e065c89f8e30cb600f6e7fa871450c8e808e7b4cf0bd97e7f93babeb59",
+            "id": "injectable-DataService-24d8d05e26bb7f8d5b01d34bfb15b820afd45c5eeb2cc2ba234c93a59da4d62497c284dfa0dc57bec837931c5c71d28509b53c54605897c4f5bee0b5198b360a",
             "file": "src/app/data.service.ts",
             "properties": [
+                {
+                    "name": "_currentUserId",
+                    "defaultValue": "new BehaviorSubject(null)",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "BehaviorSubject<any>",
+                    "optional": false,
+                    "description": "",
+                    "line": 22,
+                    "modifierKind": [
+                        121
+                    ]
+                },
                 {
                     "name": "_messages",
                     "defaultValue": "new BehaviorSubject([])",
@@ -230,9 +236,48 @@
                     "type": "BehaviorSubject<any>",
                     "optional": false,
                     "description": "",
-                    "line": 20,
+                    "line": 13,
                     "modifierKind": [
                         121
+                    ]
+                },
+                {
+                    "name": "_participants",
+                    "defaultValue": "new BehaviorSubject([])",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "BehaviorSubject<any>",
+                    "optional": false,
+                    "description": "",
+                    "line": 17,
+                    "modifierKind": [
+                        121
+                    ]
+                },
+                {
+                    "name": "_websocket",
+                    "defaultValue": "webSocket(WS_ENDPOINT)",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "WebSocketSubject<any>",
+                    "optional": false,
+                    "description": "",
+                    "line": 11,
+                    "modifierKind": [
+                        121
+                    ]
+                },
+                {
+                    "name": "currentUserId$",
+                    "defaultValue": "this._currentUserId.asObservable()",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Observable<string>",
+                    "optional": false,
+                    "description": "",
+                    "line": 23,
+                    "modifierKind": [
+                        123
                     ]
                 },
                 {
@@ -243,54 +288,57 @@
                     "type": "",
                     "optional": false,
                     "description": "",
-                    "line": 21,
+                    "line": 14,
                     "modifierKind": [
                         123
+                    ]
+                },
+                {
+                    "name": "participants$",
+                    "defaultValue": "this._participants.asObservable()",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Observable<any>",
+                    "optional": false,
+                    "description": "",
+                    "line": 18,
+                    "modifierKind": [
+                        123
+                    ]
+                },
+                {
+                    "name": "participantsList",
+                    "defaultValue": "[]",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Participant[]",
+                    "optional": false,
+                    "description": "",
+                    "line": 16,
+                    "modifierKind": [
+                        121
                     ]
                 },
                 {
                     "name": "serverMessages",
-                    "defaultValue": "new Array<Message>()",
+                    "defaultValue": "[]",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "type": "",
+                    "type": "any[]",
                     "optional": false,
                     "description": "",
-                    "line": 22,
+                    "line": 20,
                     "modifierKind": [
                         123
-                    ]
-                },
-                {
-                    "name": "socket$",
-                    "defaultValue": "webSocket(WS_ENDPOINT)",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "WebSocketSubject<any>",
-                    "optional": false,
-                    "description": "",
-                    "line": 19,
-                    "modifierKind": [
-                        121
                     ]
                 }
             ],
             "methods": [
                 {
-                    "name": "close",
-                    "args": [],
-                    "optional": false,
-                    "returnType": "void",
-                    "typeParameters": [],
-                    "line": 61,
-                    "deprecated": false,
-                    "deprecationMessage": ""
-                },
-                {
-                    "name": "sendMessage",
+                    "name": "buildParticipantsList",
                     "args": [
                         {
-                            "name": "msgStr",
+                            "name": "socketData",
                             "type": "any",
                             "deprecated": false,
                             "deprecationMessage": ""
@@ -299,12 +347,174 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 48,
+                    "line": 72,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "modifierKind": [
+                        121
+                    ],
+                    "jsdoctags": [
+                        {
+                            "name": "socketData",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "close",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 120,
+                    "deprecated": false,
+                    "deprecationMessage": ""
+                },
+                {
+                    "name": "createParticipant",
+                    "args": [
+                        {
+                            "name": "socketData",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 54,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "modifierKind": [
+                        121
+                    ],
+                    "jsdoctags": [
+                        {
+                            "name": "socketData",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "editMessage",
+                    "args": [
+                        {
+                            "name": "msg",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 109,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
                         {
-                            "name": "msgStr",
+                            "name": "msg",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "processSocketData",
+                    "args": [
+                        {
+                            "name": "socketData",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 49,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "modifierKind": [
+                        121
+                    ],
+                    "jsdoctags": [
+                        {
+                            "name": "socketData",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "sendMessage",
+                    "args": [
+                        {
+                            "name": "msg",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 97,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "name": "msg",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "updateMessagesFeed",
+                    "args": [
+                        {
+                            "name": "socketData",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 58,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "modifierKind": [
+                        121
+                    ],
+                    "jsdoctags": [
+                        {
+                            "name": "socketData",
                             "type": "any",
                             "deprecated": false,
                             "deprecationMessage": "",
@@ -319,14 +529,14 @@
             "deprecationMessage": "",
             "description": "",
             "rawdescription": "\n",
-            "sourceCode": "import { Injectable } from '@angular/core'\nimport { webSocket, WebSocketSubject } from 'rxjs/webSocket'\nimport { environment } from '../environments/environment'\nimport { tap } from 'rxjs/operators'\nimport { BehaviorSubject, Subject } from 'rxjs'\nexport const WS_ENDPOINT = environment.wsEndpoint\n\nexport interface Message {\n  name: string\n  message: string\n  time: Date\n  isBroadcast: boolean\n}\n\n@Injectable({\n  providedIn: 'root',\n})\nexport class DataService {\n  private socket$: WebSocketSubject<any> = webSocket(WS_ENDPOINT) // works\n  private _messages: BehaviorSubject<any> = new BehaviorSubject([])\n  public messages$ = this._messages.asObservable()\n  public serverMessages = new Array<Message>()\n\n  constructor() {\n    this.socket$\n      .pipe(\n        tap({\n          next: (data) => console.log('[Live observable] Next: ', data),\n          error: (error) => console.log('[Live observable] Error:', error),\n          complete: () => console.log('[Live observable] Connection Closed'),\n        })\n        // catchError((_) => EMPTY)\n      )\n      .subscribe(\n        (message) => {\n          console.log(\n            'message from server being pushed to client array: ',\n            JSON.parse(JSON.stringify(message))\n          )\n          // why is message an Array Buffer?!\n          this.serverMessages.push(JSON.parse(JSON.stringify(message)))\n        },\n        (err) => console.error(err),\n        () => console.warn('Completed!')\n      )\n  }\n\n  sendMessage(msgStr: any) {\n    console.log('sending message: ', msgStr)\n    const msg = {\n      message: msgStr,\n      name: 'Dave B',\n      isBroadcast: false,\n      time: new Date(),\n    }\n    // this.serverMessages.push(msg)\n    this.socket$.next(msg)\n    console.log('serverMessages: ', this.serverMessages)\n  }\n\n  close() {\n    this.socket$.complete()\n  }\n}\n",
+            "sourceCode": "import { Injectable } from '@angular/core'\nimport { webSocket, WebSocketSubject } from 'rxjs/webSocket'\nimport { tap } from 'rxjs/operators'\nimport { BehaviorSubject, Observable } from 'rxjs'\nimport { Participant, WS_ENDPOINT } from './data.interfaces'\n\n@Injectable({\n  providedIn: 'root',\n})\nexport class DataService {\n  private _websocket: WebSocketSubject<any> = webSocket(WS_ENDPOINT)\n\n  private _messages: BehaviorSubject<any> = new BehaviorSubject([])\n  public messages$ = this._messages.asObservable()\n\n  private participantsList: Participant[] = []\n  private _participants: BehaviorSubject<any> = new BehaviorSubject([])\n  public participants$: Observable<any> = this._participants.asObservable()\n\n  public serverMessages: any[] = []\n\n  private _currentUserId: BehaviorSubject<any> = new BehaviorSubject(null)\n  public currentUserId$: Observable<string> = this._currentUserId.asObservable()\n\n  constructor() {\n    this._websocket\n      .pipe(\n        tap({\n          next: (data) => console.log('[Live observable] Next: ', data),\n          error: (error) => console.log('[Live observable] Error:', error),\n          complete: () => console.log('[Live observable] Connection Closed'),\n        })\n      )\n      .subscribe(\n        (data) => {\n          console.log(\n            'message from server being pushed to client array: ',\n            JSON.parse(JSON.stringify(data))\n          )\n\n          const socketData = JSON.parse(JSON.stringify(data))\n          this.processSocketData(socketData)\n        },\n        (err) => console.error(err),\n        () => console.warn('Completed!')\n      )\n  }\n\n  private processSocketData(socketData: any) {\n    this.buildParticipantsList(socketData)\n    this.updateMessagesFeed(socketData)\n  }\n\n  private createParticipant(socketData: any): void {\n    this._currentUserId.next(socketData._newUserId)\n  }\n\n  private updateMessagesFeed(socketData: any) {\n    // process any deletions/edits as well as add new messages to the chat feed\n    // TODO update the serverMessages array to reflect any edits\n    if (socketData._newMessage || socketData._newUserId) {\n      this.serverMessages.push(socketData)\n    } else if (socketData._editedMessage) {\n      const targetIx = this.serverMessages.findIndex(\n        (msg) => msg._id === socketData._id\n      )\n      console.log('targetIx: ', targetIx)\n      this.serverMessages[targetIx] = socketData\n    }\n  }\n\n  private buildParticipantsList(socketData: any) {\n    const userData = {\n      _id: socketData._userId,\n      name: socketData.name,\n    }\n    let updatedParticipantsList\n\n    if (socketData.newConnection) {\n      this.createParticipant(socketData)\n    }\n\n    console.log(\n      'existing participant, add if not already present in: ',\n      this.participantsList\n    )\n    var index = this.participantsList.findIndex((x) => x._id == userData._id)\n\n    index === -1 // not in list, add object to local array\n      ? (updatedParticipantsList = this.participantsList.concat([userData])) // this.participantsList with userData in it\n      : (updatedParticipantsList = this.participantsList) // just existing participantsList\n\n    console.log('😎😎 updatedParticipantsList: ', updatedParticipantsList)\n    this._participants.next(updatedParticipantsList)\n  }\n\n  sendMessage(msg: any) {\n    const serverPayload = {\n      ...msg,\n      _created: new Date(),\n      _userId: this._currentUserId.getValue(),\n      _editedMessage: false,\n      _newMessage: true,\n    }\n    console.log('sending message: ', serverPayload)\n    this._websocket.next(serverPayload)\n  }\n\n  editMessage(msg: any) {\n    const serverPayload = {\n      ...msg,\n      _modified: new Date(),\n      _editedMessage: true,\n      _newMessage: false,\n    }\n    console.log('editMessage: ', serverPayload)\n    this._websocket.next(serverPayload)\n  }\n\n  close() {\n    this._websocket.complete()\n  }\n}\n",
             "constructorObj": {
                 "name": "constructor",
                 "description": "",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "args": [],
-                "line": 22
+                "line": 23
             },
             "type": "injectable"
         }
@@ -503,18 +713,18 @@
             }
         },
         {
-            "name": "ChatComponent",
-            "id": "component-ChatComponent-a2a8f7f75d42a2ce1dac72da544b895e5e87a5f77abe88b6bd6757b3ac1256c113f9c364948bb26cedd801d2b1b43950f50a24165c5ca5aee4169fc736b93954",
-            "file": "src/app/components/chat/chat.component.ts",
+            "name": "ChatFeedComponent",
+            "id": "component-ChatFeedComponent-f36de79873f480592781e9765a584c48e22deb7960ecd38dc251651124a0430b8d42bc3793bc99ed04aeb151d091f13aaaa229cd62d11ca47b968b5a012410bf",
+            "file": "src/app/components/chat-feed/chat-feed.component.ts",
             "encapsulation": [],
             "entryComponents": [],
             "inputs": [],
             "outputs": [],
             "providers": [],
-            "selector": "app-chat",
+            "selector": "app-chat-feed",
             "styleUrls": [],
             "styles": [],
-            "template": "<div class=\"flex flex-col\">\n  <ng-template #noChat>No chat</ng-template>\n  <ng-container *ngIf=\"messages?.length; else noChat\">\n    <div *ngFor=\"let msg of messages\" class=\"py-2 border-b border-gray-100\">\n      <p>\n        <span class=\"font-semibold mr-2\">{{ msg.name }}</span>\n        <span class=\"text-gray-400\">{{ msg.time | date: 'HH:mm' }}</span>\n      </p>\n      <p>message: {{ msg.message }}</p>\n      <p>isBroadcast: {{ msg.isBroadcast }}</p>\n    </div>\n  </ng-container>\n  <app-message-form\n    (sendMessage)=\"onSendMessage.emit($event)\"\n  ></app-message-form>\n</div>\n",
+            "template": "<div class=\"flex flex-col flex-1\">   <ng-template #noChat>No chat</ng-template>\n   <ng-container *ngIf=\"messages?.length; else noChat\">\n     <div\n       *ngFor=\"let msg of messages; trackBy: identify\"\n       class=\"py-2 border-b border-gray-100\"\n     >\n       <app-chat-item\n         [msg]=\"msg\"\n         [userId]=\"userId\"\n         (saveChanges)=\"saveChanges.emit($event)\"\n       ></app-chat-item>\n     </div>\n   </ng-container>\n </div>",
             "templateUrl": [],
             "viewProviders": [],
             "inputsClass": [
@@ -522,23 +732,75 @@
                     "name": "messages",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "line": 34,
+                    "line": 26,
                     "type": "Message[]",
+                    "decorators": []
+                },
+                {
+                    "name": "userId",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 27,
+                    "type": "string",
                     "decorators": []
                 }
             ],
             "outputsClass": [
                 {
-                    "name": "onSendMessage",
+                    "name": "saveChanges",
                     "defaultValue": "new EventEmitter()",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "line": 35,
+                    "line": 28,
                     "type": "EventEmitter<any>"
                 }
             ],
             "propertiesClass": [],
-            "methodsClass": [],
+            "methodsClass": [
+                {
+                    "name": "identify",
+                    "args": [
+                        {
+                            "name": "index",
+                            "type": "number",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        },
+                        {
+                            "name": "item",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "any",
+                    "typeParameters": [],
+                    "line": 30,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "name": "index",
+                            "type": "number",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        },
+                        {
+                            "name": "item",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                }
+            ],
             "deprecated": false,
             "deprecationMessage": "",
             "hostBindings": [],
@@ -546,10 +808,148 @@
             "description": "",
             "rawdescription": "\n\n",
             "type": "component",
-            "sourceCode": "import { Component, Input, Output, EventEmitter } from '@angular/core'\n\nexport interface Message {\n  name: string\n  time: Date\n  message: string\n  isBroadcast?: boolean\n}\n/***\n * @description shows a feed of chat messages\n */\n@Component({\n  selector: 'app-chat',\n  template: `\n    <div class=\"flex flex-col\">\n      <ng-template #noChat>No chat</ng-template>\n      <ng-container *ngIf=\"messages?.length; else noChat\">\n        <div *ngFor=\"let msg of messages\" class=\"py-2 border-b border-gray-100\">\n          <p>\n            <span class=\"font-semibold mr-2\">{{ msg.name }}</span>\n            <span class=\"text-gray-400\">{{ msg.time | date: 'HH:mm' }}</span>\n          </p>\n          <p>message: {{ msg.message }}</p>\n          <p>isBroadcast: {{ msg.isBroadcast }}</p>\n        </div>\n      </ng-container>\n      <app-message-form\n        (sendMessage)=\"onSendMessage.emit($event)\"\n      ></app-message-form>\n    </div>\n  `,\n})\nexport default class ChatComponent {\n  @Input() messages?: Message[]\n  @Output() onSendMessage: EventEmitter<any> = new EventEmitter()\n}\n",
+            "sourceCode": "import { Component, EventEmitter, Input, Output } from '@angular/core'\nimport { Message } from '../../data.interfaces'\n\n/***\n * @description shows a feed of app-chat-items\n */\n@Component({\n  selector: 'app-chat-feed',\n  template: ` <div class=\"flex flex-col flex-1\">\n    <ng-template #noChat>No chat</ng-template>\n    <ng-container *ngIf=\"messages?.length; else noChat\">\n      <div\n        *ngFor=\"let msg of messages; trackBy: identify\"\n        class=\"py-2 border-b border-gray-100\"\n      >\n        <app-chat-item\n          [msg]=\"msg\"\n          [userId]=\"userId\"\n          (saveChanges)=\"saveChanges.emit($event)\"\n        ></app-chat-item>\n      </div>\n    </ng-container>\n  </div>`,\n})\nexport default class ChatFeedComponent {\n  @Input() messages?: Message[]\n  @Input() userId?: string\n  @Output() saveChanges: EventEmitter<any> = new EventEmitter()\n\n  identify(index: number, item: any) {\n    return item._id\n  }\n}\n",
             "assetsDirs": [],
             "styleUrlsData": "",
             "stylesData": ""
+        },
+        {
+            "name": "ChatItemComponent",
+            "id": "component-ChatItemComponent-1fcece8d08797ed625fa0e86e7f901c11fa8807498281a0e7e5f9a51ceb252df559fa234d710a47d7f1fbf89074552148c0145a95dee00cd90fa17172c97f6fb",
+            "file": "src/app/components/chat-item/chat-item.component.ts",
+            "encapsulation": [],
+            "entryComponents": [],
+            "inputs": [],
+            "outputs": [],
+            "providers": [],
+            "selector": "app-chat-item",
+            "styleUrls": [],
+            "styles": [],
+            "template": "<div class=\"flex flex-row\">\n  <div class=\"flex-1\">\n    <p>\n      <span class=\"font-semibold mr-2\">{{ msg.name }}</span>\n      <span class=\"text-gray-400\">{{ msg._created | date: 'HH:mm' }}</span>\n      <span class=\"pl-1 ml-1 text-xs text-gray-400\" *ngIf=\"msg._modified\"\n        >&nbsp; Edited</span\n      >\n    </p>\n    <p *ngIf=\"!editing\">{{ msg.message }}</p>\n    <ng-container *ngIf=\"editing\">\n      <form [formGroup]=\"msgForm\">\n        <fieldset>\n          <div class=\"mb-4\">\n            <input\n              class=\"shadow appearance-none rounded w-full py-2 px-3 border\n text-gray-700 leading-tight focus:outline-none focus:shadow-outline\"\n              id=\"name\"\n              data-testid=\"name\"\n              type=\"text\"\n              placeholder=\"Message\"\n              formControlName=\"message\"\n            />\n          </div>\n        </fieldset>\n        <button\n          class=\"p-2 bg-purple-400 rounded-md text-white\"\n          (click)=\"save()\"\n        >\n          Save changes\n        </button>\n      </form>\n    </ng-container>\n  </div>\n  <button\n    class=\"w-14 h-14 hover:bg-gray-100 rounded-full \"\n    *ngIf=\"msg._id && msg._userId === userId && !editing\"\n    (click)=\"editMessage()\"\n  >\n    <i class=\"fa fa-pencil\"></i>\n  </button>\n</div>\n",
+            "templateUrl": [],
+            "viewProviders": [],
+            "inputsClass": [
+                {
+                    "name": "msg",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 53,
+                    "type": "Message",
+                    "decorators": []
+                },
+                {
+                    "name": "userId",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 54,
+                    "type": "string",
+                    "decorators": []
+                }
+            ],
+            "outputsClass": [
+                {
+                    "name": "saveChanges",
+                    "defaultValue": "new EventEmitter()",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 55,
+                    "type": "EventEmitter<any>"
+                }
+            ],
+            "propertiesClass": [
+                {
+                    "name": "editing",
+                    "defaultValue": "false",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "boolean",
+                    "optional": false,
+                    "description": "",
+                    "line": 57
+                },
+                {
+                    "name": "msgForm",
+                    "defaultValue": "this.fb.group({\n    message: [''],\n  })",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "FormGroup",
+                    "optional": false,
+                    "description": "",
+                    "line": 59
+                }
+            ],
+            "methodsClass": [
+                {
+                    "name": "editMessage",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 69,
+                    "deprecated": false,
+                    "deprecationMessage": ""
+                },
+                {
+                    "name": "ngOnInit",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 65,
+                    "deprecated": false,
+                    "deprecationMessage": ""
+                },
+                {
+                    "name": "save",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 74,
+                    "deprecated": false,
+                    "deprecationMessage": ""
+                }
+            ],
+            "deprecated": false,
+            "deprecationMessage": "",
+            "hostBindings": [],
+            "hostListeners": [],
+            "description": "",
+            "rawdescription": "\n",
+            "type": "component",
+            "sourceCode": "import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core'\nimport { FormBuilder, FormGroup, Validators } from '@angular/forms'\nimport { Message } from 'src/app/data.interfaces'\n\n@Component({\n  selector: 'app-chat-item',\n  template: `\n    <div class=\"flex flex-row\">\n      <div class=\"flex-1\">\n        <p>\n          <span class=\"font-semibold mr-2\">{{ msg.name }}</span>\n          <span class=\"text-gray-400\">{{ msg._created | date: 'HH:mm' }}</span>\n          <span class=\"pl-1 ml-1 text-xs text-gray-400\" *ngIf=\"msg._modified\"\n            >&nbsp; Edited</span\n          >\n        </p>\n        <p *ngIf=\"!editing\">{{ msg.message }}</p>\n        <ng-container *ngIf=\"editing\">\n          <form [formGroup]=\"msgForm\">\n            <fieldset>\n              <div class=\"mb-4\">\n                <input\n                  class=\"shadow appearance-none rounded w-full py-2 px-3 border\n     text-gray-700 leading-tight focus:outline-none focus:shadow-outline\"\n                  id=\"name\"\n                  data-testid=\"name\"\n                  type=\"text\"\n                  placeholder=\"Message\"\n                  formControlName=\"message\"\n                />\n              </div>\n            </fieldset>\n            <button\n              class=\"p-2 bg-purple-400 rounded-md text-white\"\n              (click)=\"save()\"\n            >\n              Save changes\n            </button>\n          </form>\n        </ng-container>\n      </div>\n      <button\n        class=\"w-14 h-14 hover:bg-gray-100 rounded-full \"\n        *ngIf=\"msg._id && msg._userId === userId && !editing\"\n        (click)=\"editMessage()\"\n      >\n        <i class=\"fa fa-pencil\"></i>\n      </button>\n    </div>\n  `,\n})\nexport default class ChatItemComponent implements OnInit {\n  @Input() msg!: Message\n  @Input() userId?: string\n  @Output() saveChanges: EventEmitter<any> = new EventEmitter()\n\n  editing: boolean = false\n\n  msgForm: FormGroup = this.fb.group({\n    message: [''],\n  })\n\n  constructor(private fb: FormBuilder) {}\n\n  ngOnInit() {\n    this.msgForm.controls.message.patchValue(this.msg.message)\n  }\n\n  editMessage() {\n    console.log('editMessage(): ')\n    this.editing = !this.editing\n  }\n\n  save() {\n    console.log('saveChanges ')\n    this.editing = false\n    const editPayload = {\n      ...this.msg,\n      message: this.msgForm.controls.message.value,\n    }\n    console.log('editPayload: ', editPayload)\n    this.saveChanges.emit(editPayload)\n  }\n}\n",
+            "assetsDirs": [],
+            "styleUrlsData": "",
+            "stylesData": "",
+            "constructorObj": {
+                "name": "constructor",
+                "description": "",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "args": [
+                    {
+                        "name": "fb",
+                        "type": "FormBuilder",
+                        "deprecated": false,
+                        "deprecationMessage": ""
+                    }
+                ],
+                "line": 61,
+                "jsdoctags": [
+                    {
+                        "name": "fb",
+                        "type": "FormBuilder",
+                        "deprecated": false,
+                        "deprecationMessage": "",
+                        "tagName": {
+                            "text": "param"
+                        }
+                    }
+                ]
+            },
+            "implements": [
+                "OnInit"
+            ]
         },
         {
             "name": "HeaderComponent",
@@ -626,7 +1026,7 @@
         },
         {
             "name": "MessageFormComponent",
-            "id": "component-MessageFormComponent-c35793696b05b9d3891a5807c6bb5b18c0b84ad7a208dc3af4667cb77d4675ef8bbfa4c4b1bf050577c78e24c8ec4c32d12739dda4cd9f7254fa688c8f4f65fa",
+            "id": "component-MessageFormComponent-66b9b32ab44e3fff4fba2d0a30c9ff2efca909fca08039b653039f2d69b4231c52370e0304719afb8a75afa7c2b6b51051f0454cf5c64214a1c023836acdd3f8",
             "file": "src/app/components/message-form/message-form.component.ts",
             "encapsulation": [],
             "entryComponents": [],
@@ -636,7 +1036,7 @@
             "selector": "app-message-form",
             "styleUrls": [],
             "styles": [],
-            "template": "<div class=\"bg-gray-200 shadow-md rounded px-8 pt-6 pb-8 mb-4\">\n  <form>\n    <div class=\"mb-4\">\n      <input\n        class=\"shadow appearance-none rounded w-full py-2 px-3 border\n         text-gray-700 leading-tight focus:outline-none focus:shadow-outline\"\n        id=\"message\"\n        type=\"text\"\n        placeholder=\"Message\"\n        (keyup)=\"onKey($event)\"\n      />\n    </div>\n  </form>\n  <button\n    class=\"p-2 rounded-md shadow-md w-64 bg-blue-300\"\n    (click)=\"sendMessage.emit({message})\"\n  >\n    Send\n  </button>\n</div>\n",
+            "template": "<div class=\"flex flex-row mt-10\">\n  <div class=\"bg-gray-200 shadow-md rounded px-8 pt-6 pb-8 mb-4 flex-1\">\n    <form [formGroup]=\"messageForm\" autocomplete=\"off\">\n      <fieldset\n        *ngIf=\"hideNameInput\"\n        class=\"mb-2\"\n        (click)=\"hideNameInput = !hideNameInput\"\n      >\n        <label>{{ messageForm.controls.name.value }}</label>\n      </fieldset>\n      <fieldset *ngIf=\"!hideNameInput\">\n        <div class=\"mb-4\">\n          <input\n            class=\"shadow appearance-none rounded w-full py-2 px-3 border\n         text-gray-700 leading-tight focus:outline-none focus:shadow-outline\"\n            id=\"name\"\n            data-testid=\"name\"\n            type=\"text\"\n            placeholder=\"Your name\"\n            formControlName=\"name\"\n          />\n        </div>\n      </fieldset>\n      <fieldset *ngIf=\"messageForm.controls.name.value\">\n        <div class=\"mb-4\">\n          <input\n            class=\"shadow appearance-none rounded w-full py-2 px-3 border\n         text-gray-700 leading-tight focus:outline-none focus:shadow-outline\"\n            id=\"message\"\n            data-testid=\"message\"\n            type=\"text\"\n            placeholder=\"Message\"\n            formControlName=\"message\"\n          />\n        </div>\n      </fieldset>\n    </form>\n    <div class=\"flex content-center\">\n      <span class=\"flex-1\"></span>\n      <button\n        class=\"p-2 w-full rounded-md  md:w-64 text-white\"\n        type=\"submit\"\n        data-testid=\"submit-button\"\n        [ngClass]=\"{ 'shadow-md bg-purple-400': messageForm.valid }\"\n        [disabled]=\"!messageForm.valid\"\n        (click)=\"submit()\"\n      >\n        Send\n      </button>\n      <span class=\"flex-1\"></span>\n    </div>\n  </div>\n</div>\n",
             "templateUrl": [],
             "viewProviders": [],
             "inputsClass": [],
@@ -646,11 +1046,21 @@
                     "defaultValue": "new EventEmitter()",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "line": 29,
+                    "line": 63,
                     "type": "EventEmitter<any>"
                 }
             ],
             "propertiesClass": [
+                {
+                    "name": "hideNameInput",
+                    "defaultValue": "false",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "boolean",
+                    "optional": false,
+                    "description": "",
+                    "line": 67
+                },
                 {
                     "name": "message",
                     "defaultValue": "''",
@@ -659,37 +1069,52 @@
                     "type": "string",
                     "optional": false,
                     "description": "",
-                    "line": 30
+                    "line": 66
+                },
+                {
+                    "name": "messageForm",
+                    "defaultValue": "this.fb.group({\n    name: [this.name, Validators.required],\n    message: [this.message, Validators.required],\n  })",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "FormGroup",
+                    "optional": false,
+                    "description": "",
+                    "line": 71
+                },
+                {
+                    "name": "name",
+                    "defaultValue": "''",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "optional": false,
+                    "description": "",
+                    "line": 65
                 }
             ],
             "methodsClass": [
                 {
-                    "name": "onKey",
-                    "args": [
-                        {
-                            "name": "event",
-                            "type": "any",
-                            "deprecated": false,
-                            "deprecationMessage": ""
-                        }
-                    ],
+                    "name": "afterSubmit",
+                    "args": [],
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 31,
+                    "line": 82,
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "jsdoctags": [
-                        {
-                            "name": "event",
-                            "type": "any",
-                            "deprecated": false,
-                            "deprecationMessage": "",
-                            "tagName": {
-                                "text": "param"
-                            }
-                        }
+                    "modifierKind": [
+                        121
                     ]
+                },
+                {
+                    "name": "submit",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 76,
+                    "deprecated": false,
+                    "deprecationMessage": ""
                 }
             ],
             "deprecated": false,
@@ -699,10 +1124,36 @@
             "description": "",
             "rawdescription": "\n",
             "type": "component",
-            "sourceCode": "import { Component, EventEmitter, Output } from '@angular/core'\n\n@Component({\n  selector: 'app-message-form',\n  template: `\n    <div class=\"bg-gray-200 shadow-md rounded px-8 pt-6 pb-8 mb-4\">\n      <form>\n        <div class=\"mb-4\">\n          <input\n            class=\"shadow appearance-none rounded w-full py-2 px-3 border\n             text-gray-700 leading-tight focus:outline-none focus:shadow-outline\"\n            id=\"message\"\n            type=\"text\"\n            placeholder=\"Message\"\n            (keyup)=\"onKey($event)\"\n          />\n        </div>\n      </form>\n      <button\n        class=\"p-2 rounded-md shadow-md w-64 bg-blue-300\"\n        (click)=\"sendMessage.emit({message})\"\n      >\n        Send\n      </button>\n    </div>\n  `,\n})\nexport default class MessageFormComponent {\n  @Output() sendMessage: EventEmitter<any> = new EventEmitter()\n  message: string = ''\n  onKey(event: any) {\n    this.message = event.target.value\n  }\n}\n",
+            "sourceCode": "import { Component, EventEmitter, OnInit, Output } from '@angular/core'\nimport { FormBuilder, FormGroup, Validators } from '@angular/forms'\n\n@Component({\n  selector: 'app-message-form',\n  template: `\n    <div class=\"flex flex-row mt-10\">\n      <div class=\"bg-gray-200 shadow-md rounded px-8 pt-6 pb-8 mb-4 flex-1\">\n        <form [formGroup]=\"messageForm\" autocomplete=\"off\">\n          <fieldset\n            *ngIf=\"hideNameInput\"\n            class=\"mb-2\"\n            (click)=\"hideNameInput = !hideNameInput\"\n          >\n            <label>{{ messageForm.controls.name.value }}</label>\n          </fieldset>\n          <fieldset *ngIf=\"!hideNameInput\">\n            <div class=\"mb-4\">\n              <input\n                class=\"shadow appearance-none rounded w-full py-2 px-3 border\n             text-gray-700 leading-tight focus:outline-none focus:shadow-outline\"\n                id=\"name\"\n                data-testid=\"name\"\n                type=\"text\"\n                placeholder=\"Your name\"\n                formControlName=\"name\"\n              />\n            </div>\n          </fieldset>\n          <fieldset *ngIf=\"messageForm.controls.name.value\">\n            <div class=\"mb-4\">\n              <input\n                class=\"shadow appearance-none rounded w-full py-2 px-3 border\n             text-gray-700 leading-tight focus:outline-none focus:shadow-outline\"\n                id=\"message\"\n                data-testid=\"message\"\n                type=\"text\"\n                placeholder=\"Message\"\n                formControlName=\"message\"\n              />\n            </div>\n          </fieldset>\n        </form>\n        <div class=\"flex content-center\">\n          <span class=\"flex-1\"></span>\n          <button\n            class=\"p-2 w-full rounded-md  md:w-64 text-white\"\n            type=\"submit\"\n            data-testid=\"submit-button\"\n            [ngClass]=\"{ 'shadow-md bg-purple-400': messageForm.valid }\"\n            [disabled]=\"!messageForm.valid\"\n            (click)=\"submit()\"\n          >\n            Send\n          </button>\n          <span class=\"flex-1\"></span>\n        </div>\n      </div>\n    </div>\n  `,\n})\nexport default class MessageFormComponent {\n  @Output() sendMessage: EventEmitter<any> = new EventEmitter()\n\n  name: string = ''\n  message: string = ''\n  hideNameInput: boolean = false\n\n  constructor(private fb: FormBuilder) {}\n\n  messageForm: FormGroup = this.fb.group({\n    name: [this.name, Validators.required],\n    message: [this.message, Validators.required],\n  })\n\n  submit(): void {\n    console.log('submitting form : ', this.messageForm.value)\n    this.sendMessage.emit(this.messageForm.value)\n    this.afterSubmit()\n  }\n\n  private afterSubmit(): void {\n    this.hideNameInput = true // switches name input to a label\n    this.messageForm.controls.message.patchValue('') // resets the message input ready for next message\n  }\n}\n",
             "assetsDirs": [],
             "styleUrlsData": "",
-            "stylesData": ""
+            "stylesData": "",
+            "constructorObj": {
+                "name": "constructor",
+                "description": "",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "args": [
+                    {
+                        "name": "fb",
+                        "type": "FormBuilder",
+                        "deprecated": false,
+                        "deprecationMessage": ""
+                    }
+                ],
+                "line": 67,
+                "jsdoctags": [
+                    {
+                        "name": "fb",
+                        "type": "FormBuilder",
+                        "deprecated": false,
+                        "deprecationMessage": "",
+                        "tagName": {
+                            "text": "param"
+                        }
+                    }
+                ]
+            }
         },
         {
             "name": "PageComponent",
@@ -779,7 +1230,7 @@
         },
         {
             "name": "PageShellComponent",
-            "id": "component-PageShellComponent-934ec5446def90cef9e6769e4fa231d3a2928af9dec6e511d1c322f418a01b6f705b3cf99e70f265d0881364397d22b9676f5f372b0552980db93616ce21acb2",
+            "id": "component-PageShellComponent-4a5d2e8ef496d1eb2f68fd2002dabf29a59fda92b0a1df149a820d24a5715ed267d26b46eaf4d8fad5cbf1c48e2efb5ff7437783509bc8ac4f239d53cb4ee3aa",
             "file": "src/app/components/shells/page-shell/page-shell.component.ts",
             "encapsulation": [],
             "entryComponents": [],
@@ -789,89 +1240,53 @@
             "selector": "app-page-shell",
             "styleUrls": [],
             "styles": [],
-            "template": "<app-pure-page-shell\n  [messages]=\"serverMessages\"\n  [participants]=\"participants\"\n  (onSendMessage)=\"buttonClicked($event)\"\n>\n</app-pure-page-shell>\n<pre>\n{{ messages$ | async | json }}\n</pre\n>\n",
+            "template": "<app-pure-page-shell\n  [messages]=\"messages$\"\n  [participants]=\"participants$ | async\"\n  [userId]=\"userId$ | async\"\n  (onSendMessage)=\"dataSvc.sendMessage($event)\"\n  (onEditMessage)=\"dataSvc.editMessage($event)\"\n>\n</app-pure-page-shell>\n",
             "templateUrl": [],
             "viewProviders": [],
             "inputsClass": [],
             "outputsClass": [],
             "propertiesClass": [
                 {
-                    "name": "liveData$",
+                    "name": "dataSvc",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "type": "any",
+                    "type": "DataService",
                     "optional": false,
                     "description": "",
-                    "line": 26
+                    "line": 26,
+                    "modifierKind": [
+                        123
+                    ]
                 },
                 {
                     "name": "messages$",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "type": "Observable<any>",
-                    "optional": true,
-                    "description": "",
-                    "line": 24
-                },
-                {
-                    "name": "participants",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "Participant[]",
-                    "optional": true,
+                    "type": "any[]",
+                    "optional": false,
                     "description": "",
                     "line": 23
                 },
                 {
-                    "name": "serverMessages",
+                    "name": "participants$",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "type": "any",
-                    "optional": false,
+                    "type": "Observable<any>",
+                    "optional": true,
                     "description": "",
-                    "line": 25
-                }
-            ],
-            "methodsClass": [
-                {
-                    "name": "buttonClicked",
-                    "args": [
-                        {
-                            "name": "ev",
-                            "type": "any",
-                            "deprecated": false,
-                            "deprecationMessage": ""
-                        }
-                    ],
-                    "optional": false,
-                    "returnType": "void",
-                    "typeParameters": [],
-                    "line": 41,
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "jsdoctags": [
-                        {
-                            "name": "ev",
-                            "type": "any",
-                            "deprecated": false,
-                            "deprecationMessage": "",
-                            "tagName": {
-                                "text": "param"
-                            }
-                        }
-                    ]
+                    "line": 22
                 },
                 {
-                    "name": "ngOnInit",
-                    "args": [],
-                    "optional": false,
-                    "returnType": "void",
-                    "typeParameters": [],
-                    "line": 39,
+                    "name": "userId$",
                     "deprecated": false,
-                    "deprecationMessage": ""
+                    "deprecationMessage": "",
+                    "type": "Observable<any>",
+                    "optional": false,
+                    "description": "",
+                    "line": 24
                 }
             ],
+            "methodsClass": [],
             "deprecated": false,
             "deprecationMessage": "",
             "hostBindings": [],
@@ -879,7 +1294,7 @@
             "description": "",
             "rawdescription": "\n",
             "type": "component",
-            "sourceCode": "import { Component, OnInit } from '@angular/core'\nimport { Observable, tap } from 'rxjs'\nimport { DataService } from 'src/app/data.service'\nimport { Message } from '../../chat/chat.component'\nimport { Participant } from '../../participants/participants.component'\n\n@Component({\n  selector: 'app-page-shell',\n  template: `\n    <app-pure-page-shell\n      [messages]=\"serverMessages\"\n      [participants]=\"participants\"\n      (onSendMessage)=\"buttonClicked($event)\"\n    >\n    </app-pure-page-shell>\n    <pre>\n    {{ messages$ | async | json }}\n    </pre\n    >\n  `,\n})\nexport default class PageShellComponent implements OnInit {\n  participants?: Participant[]\n  messages$?: Observable<any>\n  serverMessages: any\n  liveData$: any\n\n  constructor(private dataSvc: DataService) {\n    this.messages$ = this.dataSvc.messages$.pipe(\n      tap({\n        next: (data) => console.log('[Live component] Next: ', data),\n        error: (error) => console.log('[Live component] Error:', error),\n        complete: () => console.log('[Live component] Connection Closed'),\n      })\n    )\n    this.serverMessages = this.dataSvc.serverMessages\n  }\n\n  ngOnInit() {}\n\n  buttonClicked(ev: any) {\n    console.log('pinging api with a message for websocket server', ev)\n    this.dataSvc.sendMessage(ev.message)\n  }\n}\n",
+            "sourceCode": "import { Component, OnInit } from '@angular/core'\nimport { Observable, tap } from 'rxjs'\n// import { ChatStore } from 'src/app/chat.store'\nimport { DataService } from 'src/app/data.service'\nimport { Participant } from '../../../data.interfaces'\n\n@Component({\n  selector: 'app-page-shell',\n  template: `\n    <app-pure-page-shell\n      [messages]=\"messages$\"\n      [participants]=\"participants$ | async\"\n      [userId]=\"userId$ | async\"\n      (onSendMessage)=\"dataSvc.sendMessage($event)\"\n      (onEditMessage)=\"dataSvc.editMessage($event)\"\n    >\n    </app-pure-page-shell>\n  `,\n  // providers: [ChatStore],\n})\nexport default class PageShellComponent {\n  participants$?: Observable<any>\n  messages$: any[]\n  userId$: Observable<any>\n\n  constructor(public dataSvc: DataService) {\n    this.messages$ = this.dataSvc.serverMessages\n    this.userId$ = this.dataSvc.currentUserId$\n    this.participants$ = this.dataSvc.participants$\n  }\n}\n",
             "assetsDirs": [],
             "styleUrlsData": "",
             "stylesData": "",
@@ -896,7 +1311,7 @@
                         "deprecationMessage": ""
                     }
                 ],
-                "line": 26,
+                "line": 24,
                 "jsdoctags": [
                     {
                         "name": "dataSvc",
@@ -908,14 +1323,11 @@
                         }
                     }
                 ]
-            },
-            "implements": [
-                "OnInit"
-            ]
+            }
         },
         {
             "name": "ParticipantsComponent",
-            "id": "component-ParticipantsComponent-6f9ab5a1a8c14c59a34a80a95ad846baa7ecf42f294851ee98eeebec79f18aacc9eb95655a733532296d96ff132009ece12dc05a3926917e06dba66e830a4f99",
+            "id": "component-ParticipantsComponent-9db107de54a3e8c741f59a7752fbec7bcac5a0e60e319988849d83242ca07a20e48af8d8267636dc2992c7f0847c3bafaaaa2b4e5ed2d227e2c84a4e25e9dcad",
             "file": "src/app/components/participants/participants.component.ts",
             "encapsulation": [],
             "entryComponents": [],
@@ -925,22 +1337,60 @@
             "selector": "app-participants",
             "styleUrls": [],
             "styles": [],
-            "template": "<div class=\"p-2\">\n  <ng-container *ngIf=\"participants\">\n    <ul class=\"w-100\">\n      <li\n        *ngFor=\"let participant of participants\"\n        class=\"p-4 border-b border-gray-200\"\n      >\n        {{ participant.firstname }} {{ participant.lastname }}\n      </li>\n    </ul>\n  </ng-container>\n</div>\n",
+            "template": "<div class=\"p-2\">\n  <ng-container *ngIf=\"participants\">\n    <ul class=\"w-100\">\n      <li\n        *ngFor=\"let participant of participants\"\n        class=\"p-4 border-b border-gray-200\"\n      >\n        {{ participant.name }}\n        <span *ngIf=\"participant._id === userId\">👈 YOU</span>\n      </li>\n    </ul>\n  </ng-container>\n</div>\n",
             "templateUrl": [],
             "viewProviders": [],
             "inputsClass": [
                 {
                     "name": "participants",
+                    "defaultValue": "[]",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "line": 44,
-                    "type": "Participant[]",
+                    "line": 23,
+                    "type": "any",
+                    "decorators": []
+                },
+                {
+                    "name": "userId",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 22,
+                    "type": "string",
                     "decorators": []
                 }
             ],
             "outputsClass": [],
             "propertiesClass": [],
-            "methodsClass": [],
+            "methodsClass": [
+                {
+                    "name": "ngOnChanges",
+                    "args": [
+                        {
+                            "name": "changes",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 25,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "name": "changes",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                }
+            ],
             "deprecated": false,
             "deprecationMessage": "",
             "hostBindings": [],
@@ -948,14 +1398,17 @@
             "description": "",
             "rawdescription": "\n",
             "type": "component",
-            "sourceCode": "import { Component, Input } from '@angular/core'\nexport const participantsData = [\n  {\n    firstname: 'Elon',\n    lastname: 'Musk',\n  },\n  {\n    firstname: 'Jeff',\n    lastname: 'Bezos',\n  },\n  {\n    firstname: 'JB',\n    lastname: 'Straubel',\n  },\n  {\n    firstname: 'Reid',\n    lastname: 'Hoffman',\n  },\n]\n\nexport interface Participant {\n  firstname: string\n  lastname: string\n}\n\n@Component({\n  selector: 'app-participants',\n  template: `\n    <div class=\"p-2\">\n      <ng-container *ngIf=\"participants\">\n        <ul class=\"w-100\">\n          <li\n            *ngFor=\"let participant of participants\"\n            class=\"p-4 border-b border-gray-200\"\n          >\n            {{ participant.firstname }} {{ participant.lastname }}\n          </li>\n        </ul>\n      </ng-container>\n    </div>\n  `,\n})\nexport default class ParticipantsComponent {\n  @Input() participants?: Participant[]\n}\n",
+            "sourceCode": "import { Component, Input, OnChanges } from '@angular/core'\n\n@Component({\n  selector: 'app-participants',\n  template: `\n    <div class=\"p-2\">\n      <ng-container *ngIf=\"participants\">\n        <ul class=\"w-100\">\n          <li\n            *ngFor=\"let participant of participants\"\n            class=\"p-4 border-b border-gray-200\"\n          >\n            {{ participant.name }}\n            <span *ngIf=\"participant._id === userId\">👈 YOU</span>\n          </li>\n        </ul>\n      </ng-container>\n    </div>\n  `,\n})\nexport default class ParticipantsComponent implements OnChanges {\n  @Input() userId?: string\n  @Input() participants?: any = []\n\n  ngOnChanges(changes: any) {\n    console.log('changes: ', changes)\n    if (changes.userId && !changes.userId.firstChange) {\n    }\n  }\n}\n",
             "assetsDirs": [],
             "styleUrlsData": "",
-            "stylesData": ""
+            "stylesData": "",
+            "implements": [
+                "OnChanges"
+            ]
         },
         {
             "name": "PurePageShellComponent",
-            "id": "component-PurePageShellComponent-30639804e1fa2d5a28e19b6449e0ca8e8728ea0d18da6bc6a7914fe1f7ba2add539b936cb139ca36a4efc79e25c31dbaaedb2cd709dadb015f3fe9607156b950",
+            "id": "component-PurePageShellComponent-8572eb9d2570fa429575b5282cfb7e2291d0a37e445e6a9a4561b8ff2b9ea1a90b308b6d3345697dd84f891a558e6f31b30462c317ddf7bfe2859dddcac8022d",
             "file": "src/app/components/shells/page-shell/pure-page-shell/pure-page-shell.component.ts",
             "encapsulation": [],
             "entryComponents": [],
@@ -965,7 +1418,7 @@
             "selector": "app-pure-page-shell",
             "styleUrls": [],
             "styles": [],
-            "template": "<div class=\"w-full\">\n  <h1 class=\"text-center bg-gray-200 py-6\">{{ title }}</h1>\n\n  <ul class=\"flex mb-0 list-none flex-wrap pb-4 flex-row\">\n    <li class=\" last:mr-0 flex-auto text-center\">\n      <a\n        class=\"text-xs font-bold uppercase px-5 py-3 block leading-normal\"\n        (click)=\"toggleTabs(1)\"\n        [ngClass]=\"{\n          'bg-gray-200': openTab !== 1,\n          'bg-white': openTab === 1\n        }\"\n      >\n        <i class=\"fas fa-space-shuttle text-base mr-1\"></i>\n        Chat\n      </a>\n    </li>\n    <li class=\"mr-2 last:mr-0 flex-auto text-center\">\n      <a\n        class=\"text-xs font-bold uppercase px-5 py-3 block leading-normal\"\n        (click)=\"toggleTabs(2)\"\n        [ngClass]=\"{\n          'bg-gray-200': openTab !== 2,\n          'bg-white': openTab === 2\n        }\"\n      >\n        <i class=\"fas fa-cog text-base mr-1\"></i>\n        Participants (\n        {{ participants?.length }})\n      </a>\n    </li>\n  </ul>\n  <div\n    class=\"relative flex flex-col min-w-0 break-words bg-white w-full mb-6 \"\n  >\n    <div class=\"px-4 py-5 flex-auto\">\n      <div class=\"tab-content tab-space\">\n        <div [ngClass]=\"{ hidden: openTab !== 1, block: openTab === 1 }\">\n          <app-chat\n            [messages]=\"messages\"\n            (onSendMessage)=\"onSendMessage.emit($event)\"\n          >\n          </app-chat>\n        </div>\n        <div [ngClass]=\"{ hidden: openTab !== 2, block: openTab === 2 }\">\n          <app-participants\n            [participants]=\"participants\"\n          ></app-participants>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>\n",
+            "template": "<div class=\"w-full flex flex-col h-screen\">\n  <h1 class=\"text-center bg-gray-200 py-6\">{{ title }}</h1>\n\n  <ul class=\"flex mb-0 list-none flex-wrap pb-4 flex-row\">\n    <li class=\" last:mr-0 flex-auto text-center\">\n      <a\n        class=\"text-xs font-bold uppercase px-5 py-3 block leading-normal\"\n        (click)=\"toggleTabs(1)\"\n        [ngClass]=\"{\n          'bg-gray-200': openTab !== 1,\n          'bg-white': openTab === 1\n        }\"\n      >\n        Chat\n      </a>\n    </li>\n    <li class=\"mr-2 last:mr-0 flex-auto text-center\">\n      <a\n        class=\"text-xs font-bold uppercase px-5 py-3 block leading-normal\"\n        (click)=\"toggleTabs(2)\"\n        [ngClass]=\"{\n          'bg-gray-200': openTab !== 2,\n          'bg-white': openTab === 2\n        }\"\n      >\n        Participants (\n        {{ participants?.length }})\n      </a>\n    </li>\n  </ul>\n\n  <div class=\"relative flex flex-col min-w-0 break-words flex-1 w-full p-4\">\n    <div class=\"flex flex-col flex-1 p-1\">\n      <div\n        [ngClass]=\"{\n          hidden: openTab !== 1,\n          block: openTab === 1\n        }\"\n        class=\"flex flex-col flex-1\"\n      >\n        <!-- CHAT TAB -->\n        <app-chat-feed\n          [messages]=\"messages\"\n          [userId]=\"userId\"\n          (saveChanges)=\"onEditMessage.emit($event)\"\n        >\n        </app-chat-feed>\n        <div class=\"flex-1\"></div>\n        <app-message-form\n          (sendMessage)=\"onSendMessage.emit($event)\"\n        ></app-message-form>\n      </div>\n\n      <div [ngClass]=\"{ hidden: openTab !== 2, block: openTab === 2 }\">\n        <!-- PARTICIPANTS TAB -->\n        <app-participants\n          [participants]=\"participants\"\n          [userId]=\"userId\"\n        ></app-participants>\n      </div>\n    </div>\n  </div>\n</div>\n",
             "templateUrl": [],
             "viewProviders": [],
             "inputsClass": [
@@ -973,7 +1426,7 @@
                     "name": "messages",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "line": 64,
+                    "line": 73,
                     "type": "any",
                     "decorators": []
                 },
@@ -981,18 +1434,43 @@
                     "name": "participants",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "line": 65,
+                    "line": 74,
                     "type": "Participant[]",
+                    "decorators": []
+                },
+                {
+                    "name": "participantsCount",
+                    "defaultValue": "0",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 75,
+                    "type": "any",
+                    "decorators": []
+                },
+                {
+                    "name": "userId",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 76,
+                    "type": "string",
                     "decorators": []
                 }
             ],
             "outputsClass": [
                 {
+                    "name": "onEditMessage",
+                    "defaultValue": "new EventEmitter()",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 79,
+                    "type": "EventEmitter<any>"
+                },
+                {
                     "name": "onSendMessage",
                     "defaultValue": "new EventEmitter()",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "line": 66,
+                    "line": 78,
                     "type": "EventEmitter<any>"
                 }
             ],
@@ -1005,7 +1483,7 @@
                     "type": "number",
                     "optional": false,
                     "description": "",
-                    "line": 68
+                    "line": 81
                 },
                 {
                     "name": "title",
@@ -1015,7 +1493,7 @@
                     "type": "string",
                     "optional": false,
                     "description": "",
-                    "line": 72
+                    "line": 85
                 }
             ],
             "methodsClass": [
@@ -1032,7 +1510,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 69,
+                    "line": 82,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
@@ -1055,7 +1533,7 @@
             "description": "",
             "rawdescription": "\n",
             "type": "component",
-            "sourceCode": "import { Component, Input, Output, EventEmitter } from '@angular/core'\nimport { Message } from '../../../chat/chat.component'\nimport { Participant } from '../../../participants/participants.component'\n\n@Component({\n  selector: 'app-pure-page-shell',\n  template: `\n    <div class=\"w-full\">\n      <h1 class=\"text-center bg-gray-200 py-6\">{{ title }}</h1>\n\n      <ul class=\"flex mb-0 list-none flex-wrap pb-4 flex-row\">\n        <li class=\" last:mr-0 flex-auto text-center\">\n          <a\n            class=\"text-xs font-bold uppercase px-5 py-3 block leading-normal\"\n            (click)=\"toggleTabs(1)\"\n            [ngClass]=\"{\n              'bg-gray-200': openTab !== 1,\n              'bg-white': openTab === 1\n            }\"\n          >\n            <i class=\"fas fa-space-shuttle text-base mr-1\"></i>\n            Chat\n          </a>\n        </li>\n        <li class=\"mr-2 last:mr-0 flex-auto text-center\">\n          <a\n            class=\"text-xs font-bold uppercase px-5 py-3 block leading-normal\"\n            (click)=\"toggleTabs(2)\"\n            [ngClass]=\"{\n              'bg-gray-200': openTab !== 2,\n              'bg-white': openTab === 2\n            }\"\n          >\n            <i class=\"fas fa-cog text-base mr-1\"></i>\n            Participants (\n            {{ participants?.length }})\n          </a>\n        </li>\n      </ul>\n      <div\n        class=\"relative flex flex-col min-w-0 break-words bg-white w-full mb-6 \"\n      >\n        <div class=\"px-4 py-5 flex-auto\">\n          <div class=\"tab-content tab-space\">\n            <div [ngClass]=\"{ hidden: openTab !== 1, block: openTab === 1 }\">\n              <app-chat\n                [messages]=\"messages\"\n                (onSendMessage)=\"onSendMessage.emit($event)\"\n              >\n              </app-chat>\n            </div>\n            <div [ngClass]=\"{ hidden: openTab !== 2, block: openTab === 2 }\">\n              <app-participants\n                [participants]=\"participants\"\n              ></app-participants>\n            </div>\n          </div>\n        </div>\n      </div>\n    </div>\n  `,\n})\nexport default class PurePageShellComponent {\n  @Input() messages?: any\n  @Input() participants?: Participant[]\n  @Output() onSendMessage: EventEmitter<any> = new EventEmitter()\n\n  openTab = 1\n  toggleTabs($tabNumber: number) {\n    this.openTab = $tabNumber\n  }\n  title = 'Status Meeting Standup'\n}\n",
+            "sourceCode": "import { Component, Input, Output, EventEmitter } from '@angular/core'\nimport { Participant } from '../../../../data.interfaces'\n\n@Component({\n  selector: 'app-pure-page-shell',\n  template: `\n    <div class=\"w-full flex flex-col h-screen\">\n      <h1 class=\"text-center bg-gray-200 py-6\">{{ title }}</h1>\n\n      <ul class=\"flex mb-0 list-none flex-wrap pb-4 flex-row\">\n        <li class=\" last:mr-0 flex-auto text-center\">\n          <a\n            class=\"text-xs font-bold uppercase px-5 py-3 block leading-normal\"\n            (click)=\"toggleTabs(1)\"\n            [ngClass]=\"{\n              'bg-gray-200': openTab !== 1,\n              'bg-white': openTab === 1\n            }\"\n          >\n            Chat\n          </a>\n        </li>\n        <li class=\"mr-2 last:mr-0 flex-auto text-center\">\n          <a\n            class=\"text-xs font-bold uppercase px-5 py-3 block leading-normal\"\n            (click)=\"toggleTabs(2)\"\n            [ngClass]=\"{\n              'bg-gray-200': openTab !== 2,\n              'bg-white': openTab === 2\n            }\"\n          >\n            Participants (\n            {{ participants?.length }})\n          </a>\n        </li>\n      </ul>\n\n      <div class=\"relative flex flex-col min-w-0 break-words flex-1 w-full p-4\">\n        <div class=\"flex flex-col flex-1 p-1\">\n          <div\n            [ngClass]=\"{\n              hidden: openTab !== 1,\n              block: openTab === 1\n            }\"\n            class=\"flex flex-col flex-1\"\n          >\n            <!-- CHAT TAB -->\n            <app-chat-feed\n              [messages]=\"messages\"\n              [userId]=\"userId\"\n              (saveChanges)=\"onEditMessage.emit($event)\"\n            >\n            </app-chat-feed>\n            <div class=\"flex-1\"></div>\n            <app-message-form\n              (sendMessage)=\"onSendMessage.emit($event)\"\n            ></app-message-form>\n          </div>\n\n          <div [ngClass]=\"{ hidden: openTab !== 2, block: openTab === 2 }\">\n            <!-- PARTICIPANTS TAB -->\n            <app-participants\n              [participants]=\"participants\"\n              [userId]=\"userId\"\n            ></app-participants>\n          </div>\n        </div>\n      </div>\n    </div>\n  `,\n})\nexport default class PurePageShellComponent {\n  @Input() messages?: any\n  @Input() participants?: Participant[]\n  @Input() participantsCount: any = 0\n  @Input() userId?: string\n\n  @Output() onSendMessage: EventEmitter<any> = new EventEmitter()\n  @Output() onEditMessage: EventEmitter<any> = new EventEmitter()\n\n  openTab = 1\n  toggleTabs($tabNumber: number) {\n    this.openTab = $tabNumber\n  }\n  title = 'Status Meeting Standup'\n}\n",
             "assetsDirs": [],
             "styleUrlsData": "",
             "stylesData": ""
@@ -1064,13 +1542,13 @@
     "modules": [
         {
             "name": "AppModule",
-            "id": "module-AppModule-4da2751f6e4788d15c2cc91bb7952aedde41404753eddd5cbc2d39357f3d83c457801cfd7447c67307482ad81de71fb654fe724fdf9f231a9a3e5413ac86b73d",
+            "id": "module-AppModule-cc79c3fb91f27653e6b81b7ffcc5a6cfd40a5860fe45c890985625aa54cf6727786e606c763a2dc23a388056aa4798e55436728185edf09b8d5a432857693879",
             "description": "",
             "deprecationMessage": "",
             "deprecated": false,
             "file": "src/app/app.module.ts",
             "methods": [],
-            "sourceCode": "import { NgModule } from '@angular/core'\nimport { BrowserModule } from '@angular/platform-browser'\nimport { RouterModule } from '@angular/router'\nimport { HttpClientModule } from '@angular/common/http'\n\nimport AppComponent from './app.component'\nimport ChatComponent from './components/chat/chat.component'\nimport ParticipantsComponent from './components/participants/participants.component'\nimport PageShellComponent from './components/shells/page-shell/page-shell.component'\nimport PurePageShellComponent from './components/shells/page-shell/pure-page-shell/pure-page-shell.component'\nimport MessageFormComponent from './components/message-form/message-form.component'\n\n@NgModule({\n  declarations: [\n    AppComponent,\n    PurePageShellComponent,\n    PageShellComponent,\n    ChatComponent,\n    ParticipantsComponent,\n    MessageFormComponent,\n  ],\n  imports: [BrowserModule, RouterModule, HttpClientModule],\n  providers: [],\n  bootstrap: [AppComponent],\n})\nexport class AppModule {}\n",
+            "sourceCode": "import { NgModule } from '@angular/core'\nimport { BrowserModule } from '@angular/platform-browser'\nimport { RouterModule } from '@angular/router'\nimport { HttpClientModule } from '@angular/common/http'\nimport { ReactiveFormsModule } from '@angular/forms'\n\nimport AppComponent from './app.component'\nimport ChatFeedComponent from './components/chat-feed/chat-feed.component'\nimport ChatItemComponent from './components/chat-item/chat-item.component'\nimport ParticipantsComponent from './components/participants/participants.component'\nimport PageShellComponent from './components/shells/page-shell/page-shell.component'\nimport PurePageShellComponent from './components/shells/page-shell/pure-page-shell/pure-page-shell.component'\nimport MessageFormComponent from './components/message-form/message-form.component'\n\n@NgModule({\n  declarations: [\n    AppComponent,\n    PurePageShellComponent,\n    PageShellComponent,\n    ChatFeedComponent,\n    ChatItemComponent,\n    ParticipantsComponent,\n    MessageFormComponent,\n  ],\n  imports: [BrowserModule, RouterModule, HttpClientModule, ReactiveFormsModule],\n  providers: [],\n  bootstrap: [AppComponent],\n})\nexport class AppModule {}\n",
             "children": [
                 {
                     "type": "providers",
@@ -1083,7 +1561,10 @@
                             "name": "AppComponent"
                         },
                         {
-                            "name": "ChatComponent"
+                            "name": "ChatFeedComponent"
+                        },
+                        {
+                            "name": "ChatItemComponent"
                         },
                         {
                             "name": "MessageFormComponent"
@@ -1128,16 +1609,6 @@
                 "name": "actionsData",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
-                "file": "src/app/components/chat/chat.component.stories.ts",
-                "deprecated": false,
-                "deprecationMessage": "",
-                "type": "object",
-                "defaultValue": "{\n  onSendMessage: action('onSendMessage'),\n}"
-            },
-            {
-                "name": "actionsData",
-                "ctype": "miscellaneous",
-                "subtype": "variable",
                 "file": "src/app/components/message-form/message-form.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
@@ -1148,11 +1619,41 @@
                 "name": "actionsData",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
+                "file": "src/app/components/chat-feed/chat-feed.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "object",
+                "defaultValue": "{\n  saveChanges: action('saveChanges'),\n}"
+            },
+            {
+                "name": "actionsData",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "src/app/components/chat-item/chat-item.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "object",
+                "defaultValue": "{\n  onSendMessage: action('onSendMessage'),\n}"
+            },
+            {
+                "name": "actionsData",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
                 "file": "src/app/components/shells/page-shell/pure-page-shell/pure-page-shell.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "object",
                 "defaultValue": "{\n  onSendMessage: action('onSendMessage'),\n}"
+            },
+            {
+                "name": "CompletedMessageForm",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "src/app/components/message-form/message-form.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "",
+                "defaultValue": "Template.bind({})"
             },
             {
                 "name": "context",
@@ -1175,20 +1676,20 @@
                 "defaultValue": "Template.bind({})"
             },
             {
-                "name": "DefaultChat",
+                "name": "DefaultChatFeed",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
-                "file": "src/app/components/chat/chat.component.stories.ts",
+                "file": "src/app/components/chat-feed/chat-feed.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "",
                 "defaultValue": "Template.bind({})"
             },
             {
-                "name": "DefaultMessageForm",
+                "name": "DefaultChatItem",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
-                "file": "src/app/components/message-form/message-form.component.stories.ts",
+                "file": "src/app/components/chat-item/chat-item.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "",
@@ -1199,6 +1700,26 @@
                 "ctype": "miscellaneous",
                 "subtype": "variable",
                 "file": "src/app/components/participants/participants.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "",
+                "defaultValue": "Template.bind({})"
+            },
+            {
+                "name": "EditedChatItem",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "src/app/components/chat-item/chat-item.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "",
+                "defaultValue": "Template.bind({})"
+            },
+            {
+                "name": "EmptyMessageForm",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "src/app/components/message-form/message-form.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "",
@@ -1222,7 +1743,7 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "object",
-                "defaultValue": "{\n  production: true\n}"
+                "defaultValue": "{\n  production: true,\n  wsEndpoint: 'ws://localhost:8080',\n}"
             },
             {
                 "name": "Large",
@@ -1282,17 +1803,7 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "Participant[]",
-                "defaultValue": "[\n  {\n    firstname: 'Elon',\n    lastname: 'Musk',\n  },\n  {\n    firstname: 'Jeff',\n    lastname: 'Bezos',\n  },\n  {\n    firstname: 'JB',\n    lastname: 'Straubel',\n  },\n  {\n    firstname: 'Reid',\n    lastname: 'Hoffman',\n  },\n]"
-            },
-            {
-                "name": "participantsData",
-                "ctype": "miscellaneous",
-                "subtype": "variable",
-                "file": "src/app/components/participants/participants.component.ts",
-                "deprecated": false,
-                "deprecationMessage": "",
-                "type": "[]",
-                "defaultValue": "[\n  {\n    firstname: 'Elon',\n    lastname: 'Musk',\n  },\n  {\n    firstname: 'Jeff',\n    lastname: 'Bezos',\n  },\n  {\n    firstname: 'JB',\n    lastname: 'Straubel',\n  },\n  {\n    firstname: 'Reid',\n    lastname: 'Hoffman',\n  },\n]"
+                "defaultValue": "[\n  {\n    _id: '12',\n    name: 'Elon Musk',\n  },\n  {\n    _id: '34',\n    name: 'Jeff Bezos',\n  },\n  {\n    _id: '56',\n    name: 'JB Straubel',\n  },\n  {\n    _id: '78',\n    name: 'Reid Hoffman',\n  },\n]"
             },
             {
                 "name": "Primary",
@@ -1367,11 +1878,21 @@
                 "name": "Template",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
-                "file": "src/app/components/chat/chat.component.stories.ts",
+                "file": "src/app/components/message-form/message-form.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
-                "type": "Story<ChatComponent>",
-                "defaultValue": "(args: ChatComponent) => ({\n  props: {\n    ...args,\n    onSendMessage: actionsData.onSendMessage,\n  },\n})"
+                "type": "Story<MessageFormComponent>",
+                "defaultValue": "(args: MessageFormComponent) => ({\n  props: {\n    ...args,\n    sendMessage: actionsData.sendMessage,\n  },\n})"
+            },
+            {
+                "name": "Template",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "src/app/components/chat-feed/chat-feed.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Story<ChatFeedComponent>",
+                "defaultValue": "(args: ChatFeedComponent) => ({\n  props: {\n    ...args,\n    saveChanges: actionsData.saveChanges,\n  },\n})"
             },
             {
                 "name": "Template",
@@ -1387,11 +1908,11 @@
                 "name": "Template",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
-                "file": "src/app/components/message-form/message-form.component.stories.ts",
+                "file": "src/app/components/chat-item/chat-item.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
-                "type": "Story<MessageFormComponent>",
-                "defaultValue": "(args: MessageFormComponent) => ({\n  props: {\n    ...args,\n    sendMessage: actionsData.sendMessage,\n  },\n})"
+                "type": "Story<ChatItemComponent>",
+                "defaultValue": "(args: ChatItemComponent) => ({\n  props: {\n    ...args,\n    onSendMessage: actionsData.onSendMessage,\n  },\n})"
             },
             {
                 "name": "Template",
@@ -1404,62 +1925,40 @@
                 "defaultValue": "(\n  args: PurePageShellComponent\n) => ({\n  props: {\n    ...args,\n    onSendMessage: actionsData.onSendMessage,\n  },\n})"
             },
             {
+                "name": "ValidMessageForm",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "src/app/components/message-form/message-form.component.stories.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "",
+                "defaultValue": "Template.bind({})"
+            },
+            {
                 "name": "WS_ENDPOINT",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
-                "file": "src/app/chat.service.ts",
+                "file": "src/app/data.interfaces.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "",
                 "defaultValue": "environment.wsEndpoint"
             },
             {
-                "name": "WS_ENDPOINT",
+                "name": "YourChatItem",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
-                "file": "src/app/data.service.ts",
+                "file": "src/app/components/chat-item/chat-item.component.stories.ts",
                 "deprecated": false,
                 "deprecationMessage": "",
                 "type": "",
-                "defaultValue": "environment.wsEndpoint"
+                "defaultValue": "Template.bind({})"
             }
         ],
         "functions": [],
         "typealiases": [],
         "enumerations": [],
         "groupedVariables": {
-            "src/app/components/chat/chat.component.stories.ts": [
-                {
-                    "name": "actionsData",
-                    "ctype": "miscellaneous",
-                    "subtype": "variable",
-                    "file": "src/app/components/chat/chat.component.stories.ts",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "object",
-                    "defaultValue": "{\n  onSendMessage: action('onSendMessage'),\n}"
-                },
-                {
-                    "name": "DefaultChat",
-                    "ctype": "miscellaneous",
-                    "subtype": "variable",
-                    "file": "src/app/components/chat/chat.component.stories.ts",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "",
-                    "defaultValue": "Template.bind({})"
-                },
-                {
-                    "name": "Template",
-                    "ctype": "miscellaneous",
-                    "subtype": "variable",
-                    "file": "src/app/components/chat/chat.component.stories.ts",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "Story<ChatComponent>",
-                    "defaultValue": "(args: ChatComponent) => ({\n  props: {\n    ...args,\n    onSendMessage: actionsData.onSendMessage,\n  },\n})"
-                }
-            ],
             "src/app/components/message-form/message-form.component.stories.ts": [
                 {
                     "name": "actionsData",
@@ -1472,7 +1971,17 @@
                     "defaultValue": "{\n  sendMessage: action('sendMessage'),\n}"
                 },
                 {
-                    "name": "DefaultMessageForm",
+                    "name": "CompletedMessageForm",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "src/app/components/message-form/message-form.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "",
+                    "defaultValue": "Template.bind({})"
+                },
+                {
+                    "name": "EmptyMessageForm",
                     "ctype": "miscellaneous",
                     "subtype": "variable",
                     "file": "src/app/components/message-form/message-form.component.stories.ts",
@@ -1490,6 +1999,100 @@
                     "deprecationMessage": "",
                     "type": "Story<MessageFormComponent>",
                     "defaultValue": "(args: MessageFormComponent) => ({\n  props: {\n    ...args,\n    sendMessage: actionsData.sendMessage,\n  },\n})"
+                },
+                {
+                    "name": "ValidMessageForm",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "src/app/components/message-form/message-form.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "",
+                    "defaultValue": "Template.bind({})"
+                }
+            ],
+            "src/app/components/chat-feed/chat-feed.component.stories.ts": [
+                {
+                    "name": "actionsData",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "src/app/components/chat-feed/chat-feed.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "object",
+                    "defaultValue": "{\n  saveChanges: action('saveChanges'),\n}"
+                },
+                {
+                    "name": "DefaultChatFeed",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "src/app/components/chat-feed/chat-feed.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "",
+                    "defaultValue": "Template.bind({})"
+                },
+                {
+                    "name": "Template",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "src/app/components/chat-feed/chat-feed.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story<ChatFeedComponent>",
+                    "defaultValue": "(args: ChatFeedComponent) => ({\n  props: {\n    ...args,\n    saveChanges: actionsData.saveChanges,\n  },\n})"
+                }
+            ],
+            "src/app/components/chat-item/chat-item.component.stories.ts": [
+                {
+                    "name": "actionsData",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "src/app/components/chat-item/chat-item.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "object",
+                    "defaultValue": "{\n  onSendMessage: action('onSendMessage'),\n}"
+                },
+                {
+                    "name": "DefaultChatItem",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "src/app/components/chat-item/chat-item.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "",
+                    "defaultValue": "Template.bind({})"
+                },
+                {
+                    "name": "EditedChatItem",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "src/app/components/chat-item/chat-item.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "",
+                    "defaultValue": "Template.bind({})"
+                },
+                {
+                    "name": "Template",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "src/app/components/chat-item/chat-item.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Story<ChatItemComponent>",
+                    "defaultValue": "(args: ChatItemComponent) => ({\n  props: {\n    ...args,\n    onSendMessage: actionsData.onSendMessage,\n  },\n})"
+                },
+                {
+                    "name": "YourChatItem",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "src/app/components/chat-item/chat-item.component.stories.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "",
+                    "defaultValue": "Template.bind({})"
                 }
             ],
             "src/app/components/shells/page-shell/pure-page-shell/pure-page-shell.component.stories.ts": [
@@ -1564,7 +2167,7 @@
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "Participant[]",
-                    "defaultValue": "[\n  {\n    firstname: 'Elon',\n    lastname: 'Musk',\n  },\n  {\n    firstname: 'Jeff',\n    lastname: 'Bezos',\n  },\n  {\n    firstname: 'JB',\n    lastname: 'Straubel',\n  },\n  {\n    firstname: 'Reid',\n    lastname: 'Hoffman',\n  },\n]"
+                    "defaultValue": "[\n  {\n    _id: '12',\n    name: 'Elon Musk',\n  },\n  {\n    _id: '34',\n    name: 'Jeff Bezos',\n  },\n  {\n    _id: '56',\n    name: 'JB Straubel',\n  },\n  {\n    _id: '78',\n    name: 'Reid Hoffman',\n  },\n]"
                 },
                 {
                     "name": "Template",
@@ -1598,7 +2201,7 @@
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "object",
-                    "defaultValue": "{\n  production: true\n}"
+                    "defaultValue": "{\n  production: true,\n  wsEndpoint: 'ws://localhost:8080',\n}"
                 }
             ],
             "src/stories/Button.stories.ts": [
@@ -1717,36 +2320,12 @@
                     "defaultValue": "(args: Page) => ({\n  props: args,\n})"
                 }
             ],
-            "src/app/components/participants/participants.component.ts": [
-                {
-                    "name": "participantsData",
-                    "ctype": "miscellaneous",
-                    "subtype": "variable",
-                    "file": "src/app/components/participants/participants.component.ts",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "[]",
-                    "defaultValue": "[\n  {\n    firstname: 'Elon',\n    lastname: 'Musk',\n  },\n  {\n    firstname: 'Jeff',\n    lastname: 'Bezos',\n  },\n  {\n    firstname: 'JB',\n    lastname: 'Straubel',\n  },\n  {\n    firstname: 'Reid',\n    lastname: 'Hoffman',\n  },\n]"
-                }
-            ],
-            "src/app/chat.service.ts": [
+            "src/app/data.interfaces.ts": [
                 {
                     "name": "WS_ENDPOINT",
                     "ctype": "miscellaneous",
                     "subtype": "variable",
-                    "file": "src/app/chat.service.ts",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "",
-                    "defaultValue": "environment.wsEndpoint"
-                }
-            ],
-            "src/app/data.service.ts": [
-                {
-                    "name": "WS_ENDPOINT",
-                    "ctype": "miscellaneous",
-                    "subtype": "variable",
-                    "file": "src/app/data.service.ts",
+                    "file": "src/app/data.interfaces.ts",
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "",
@@ -1773,26 +2352,25 @@
                 "status": "low"
             },
             {
-                "filePath": "src/app/chat.service.ts",
+                "filePath": "src/app/chat.store.ts",
                 "type": "injectable",
                 "linktype": "injectable",
-                "name": "ChatService",
+                "name": "ChatStore",
                 "coveragePercent": 0,
-                "coverageCount": "0/4",
+                "coverageCount": "0/2",
                 "status": "low"
             },
             {
-                "filePath": "src/app/chat.service.ts",
-                "type": "variable",
-                "linktype": "miscellaneous",
-                "linksubtype": "variable",
-                "name": "WS_ENDPOINT",
+                "filePath": "src/app/chat.store.ts",
+                "type": "interface",
+                "linktype": "interface",
+                "name": "ChatState",
                 "coveragePercent": 0,
-                "coverageCount": "0/1",
+                "coverageCount": "0/2",
                 "status": "low"
             },
             {
-                "filePath": "src/app/components/chat/chat.component.stories.ts",
+                "filePath": "src/app/components/chat-feed/chat-feed.component.stories.ts",
                 "type": "variable",
                 "linktype": "miscellaneous",
                 "linksubtype": "variable",
@@ -1802,17 +2380,17 @@
                 "status": "low"
             },
             {
-                "filePath": "src/app/components/chat/chat.component.stories.ts",
+                "filePath": "src/app/components/chat-feed/chat-feed.component.stories.ts",
                 "type": "variable",
                 "linktype": "miscellaneous",
                 "linksubtype": "variable",
-                "name": "DefaultChat",
+                "name": "DefaultChatFeed",
                 "coveragePercent": 0,
                 "coverageCount": "0/1",
                 "status": "low"
             },
             {
-                "filePath": "src/app/components/chat/chat.component.stories.ts",
+                "filePath": "src/app/components/chat-feed/chat-feed.component.stories.ts",
                 "type": "variable",
                 "linktype": "miscellaneous",
                 "linksubtype": "variable",
@@ -1822,24 +2400,74 @@
                 "status": "low"
             },
             {
-                "filePath": "src/app/components/chat/chat.component.ts",
+                "filePath": "src/app/components/chat-feed/chat-feed.component.ts",
                 "type": "component",
                 "linktype": "component",
-                "name": "ChatComponent",
-                "coveragePercent": 0,
-                "coverageCount": "0/3",
-                "status": "low"
-            },
-            {
-                "filePath": "src/app/components/chat/chat.component.ts",
-                "type": "interface",
-                "linktype": "interface",
-                "name": "Message",
+                "name": "ChatFeedComponent",
                 "coveragePercent": 0,
                 "coverageCount": "0/5",
                 "status": "low"
             },
             {
+                "filePath": "src/app/components/chat-item/chat-item.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "actionsData",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "src/app/components/chat-item/chat-item.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "DefaultChatItem",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "src/app/components/chat-item/chat-item.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "EditedChatItem",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "src/app/components/chat-item/chat-item.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "Template",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "src/app/components/chat-item/chat-item.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "YourChatItem",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "src/app/components/chat-item/chat-item.component.ts",
+                "type": "component",
+                "linktype": "component",
+                "name": "ChatItemComponent",
+                "coveragePercent": 0,
+                "coverageCount": "0/10",
+                "status": "low"
+            },
+            {
                 "filePath": "src/app/components/message-form/message-form.component.stories.ts",
                 "type": "variable",
                 "linktype": "miscellaneous",
@@ -1854,7 +2482,17 @@
                 "type": "variable",
                 "linktype": "miscellaneous",
                 "linksubtype": "variable",
-                "name": "DefaultMessageForm",
+                "name": "CompletedMessageForm",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "src/app/components/message-form/message-form.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "EmptyMessageForm",
                 "coveragePercent": 0,
                 "coverageCount": "0/1",
                 "status": "low"
@@ -1865,6 +2503,16 @@
                 "linktype": "miscellaneous",
                 "linksubtype": "variable",
                 "name": "Template",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "src/app/components/message-form/message-form.component.stories.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "ValidMessageForm",
                 "coveragePercent": 0,
                 "coverageCount": "0/1",
                 "status": "low"
@@ -1875,7 +2523,7 @@
                 "linktype": "component",
                 "name": "MessageFormComponent",
                 "coveragePercent": 0,
-                "coverageCount": "0/4",
+                "coverageCount": "0/9",
                 "status": "low"
             },
             {
@@ -1914,26 +2562,7 @@
                 "linktype": "component",
                 "name": "ParticipantsComponent",
                 "coveragePercent": 0,
-                "coverageCount": "0/2",
-                "status": "low"
-            },
-            {
-                "filePath": "src/app/components/participants/participants.component.ts",
-                "type": "interface",
-                "linktype": "interface",
-                "name": "Participant",
-                "coveragePercent": 0,
-                "coverageCount": "0/3",
-                "status": "low"
-            },
-            {
-                "filePath": "src/app/components/participants/participants.component.ts",
-                "type": "variable",
-                "linktype": "miscellaneous",
-                "linksubtype": "variable",
-                "name": "participantsData",
-                "coveragePercent": 0,
-                "coverageCount": "0/1",
+                "coverageCount": "0/4",
                 "status": "low"
             },
             {
@@ -1942,7 +2571,7 @@
                 "linktype": "component",
                 "name": "PageShellComponent",
                 "coveragePercent": 0,
-                "coverageCount": "0/8",
+                "coverageCount": "0/6",
                 "status": "low"
             },
             {
@@ -1981,7 +2610,44 @@
                 "linktype": "component",
                 "name": "PurePageShellComponent",
                 "coveragePercent": 0,
+                "coverageCount": "0/10",
+                "status": "low"
+            },
+            {
+                "filePath": "src/app/data.interfaces.ts",
+                "type": "interface",
+                "linktype": "interface",
+                "name": "CurrentUser",
+                "coveragePercent": 0,
+                "coverageCount": "0/3",
+                "status": "low"
+            },
+            {
+                "filePath": "src/app/data.interfaces.ts",
+                "type": "interface",
+                "linktype": "interface",
+                "name": "Message",
+                "coveragePercent": 0,
                 "coverageCount": "0/7",
+                "status": "low"
+            },
+            {
+                "filePath": "src/app/data.interfaces.ts",
+                "type": "interface",
+                "linktype": "interface",
+                "name": "Participant",
+                "coveragePercent": 0,
+                "coverageCount": "0/3",
+                "status": "low"
+            },
+            {
+                "filePath": "src/app/data.interfaces.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "WS_ENDPOINT",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
                 "status": "low"
             },
             {
@@ -1990,26 +2656,7 @@
                 "linktype": "injectable",
                 "name": "DataService",
                 "coveragePercent": 0,
-                "coverageCount": "0/8",
-                "status": "low"
-            },
-            {
-                "filePath": "src/app/data.service.ts",
-                "type": "interface",
-                "linktype": "interface",
-                "name": "Message",
-                "coveragePercent": 0,
-                "coverageCount": "0/5",
-                "status": "low"
-            },
-            {
-                "filePath": "src/app/data.service.ts",
-                "type": "variable",
-                "linktype": "miscellaneous",
-                "linksubtype": "variable",
-                "name": "WS_ENDPOINT",
-                "coveragePercent": 0,
-                "coverageCount": "0/1",
+                "coverageCount": "0/18",
                 "status": "low"
             },
             {

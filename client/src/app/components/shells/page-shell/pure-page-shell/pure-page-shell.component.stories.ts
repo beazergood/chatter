@@ -44,6 +44,7 @@ const Template: Story<PurePageShellComponent> = (
 // Default scenario
 export const Default = Template.bind({})
 Default.args = {
+  userId: '34',
   messages: DefaultChatFeed.args?.messages,
   participants: DefaultParticipants.args?.participants,
 }

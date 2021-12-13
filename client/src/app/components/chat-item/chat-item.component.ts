@@ -11,31 +11,32 @@ import { Message } from 'src/app/data.interfaces'
           <span class="font-semibold mr-2">{{ msg.name }}</span>
           <span class="text-gray-400">{{ msg._created | date: 'HH:mm' }}</span>
           <span class="pl-1 ml-1 text-xs text-gray-400" *ngIf="msg._modified"
-            >&nbsp; Edited</span
+            >&nbsp; (edited)</span
           >
         </p>
         <p *ngIf="!editing">{{ msg.message }}</p>
         <ng-container *ngIf="editing">
           <form [formGroup]="msgForm">
             <fieldset>
-              <div class="mb-4">
+              <div class="flex flex-row">
                 <input
-                  class="shadow appearance-none rounded w-full py-2 px-3 border
-     text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  class="shadow appearance-none rounded w-full py-2 px-3 mr-2 border
+     text-gray-700 leading-tight focus:outline-none focus:shadow-outline flex-1"
                   id="name"
                   data-testid="name"
                   type="text"
                   placeholder="Message"
                   formControlName="message"
                 />
+
+                <button
+                  class="w-14 h-14 bg-purple-400 hover:shadow-md rounded-full text-white"
+                  (click)="save()"
+                >
+                  <i class="fa fa-save"></i>
+                </button>
               </div>
             </fieldset>
-            <button
-              class="p-2 bg-purple-400 rounded-md text-white"
-              (click)="save()"
-            >
-              Save changes
-            </button>
           </form>
         </ng-container>
       </div>
