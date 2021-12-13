@@ -2,12 +2,13 @@ import { moduleMetadata, Story, Meta } from '@storybook/angular'
 import { CommonModule } from '@angular/common'
 
 import PurePageShellComponent from './pure-page-shell.component'
-import ChatComponent from '../../../chat/chat.component'
+import ChatComponent from '../../../chat-feed/chat-feed.component'
 import ParticipantsComponent from '../../../participants/participants.component'
 import MessageFormComponent from '../../../message-form/message-form.component'
-import { DefaultChat } from '../../../chat/chat.component.stories'
+import { DefaultChatFeed } from '../../../chat-feed/chat-feed.component.stories'
 import { DefaultParticipants } from '../../../participants/participants.component.stories'
 import { action } from '@storybook/addon-actions'
+import { ReactiveFormsModule, FormBuilder } from '@angular/forms'
 
 export default {
   title: 'Pages/PurePageShell',
@@ -20,7 +21,8 @@ export default {
         ParticipantsComponent,
         MessageFormComponent,
       ],
-      imports: [CommonModule],
+      imports: [CommonModule, ReactiveFormsModule],
+      providers: [FormBuilder],
     }),
   ],
 } as Meta
@@ -40,6 +42,6 @@ const Template: Story<PurePageShellComponent> = (
 // Default scenario
 export const Default = Template.bind({})
 Default.args = {
-  messages: DefaultChat.args?.messages,
+  messages: DefaultChatFeed.args?.messages,
   participants: DefaultParticipants.args?.participants,
 }

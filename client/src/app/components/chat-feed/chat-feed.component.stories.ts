@@ -1,84 +1,92 @@
 import { action } from '@storybook/addon-actions'
 import { Story, Meta, moduleMetadata } from '@storybook/angular'
-import MessageFormComponent from '../message-form/message-form.component'
-import ChatComponent from './chat.component'
+import ChatFeedComponent from './chat-feed.component'
+import ChatItemComponent from '../chat-item/chat-item.component'
 
 export default {
-  title: 'Components/Organisms/Chat',
-  component: ChatComponent,
+  title: 'Components/ChatFeed',
+  component: ChatFeedComponent,
   excludeStories: /.*Data$/,
   decorators: [
     moduleMetadata({
-      declarations: [ChatComponent, MessageFormComponent],
+      declarations: [ChatFeedComponent, ChatItemComponent],
     }),
   ],
 } as Meta
 
 export const actionsData = {
-  onSendMessage: action('onSendMessage'),
+  saveChanges: action('saveChanges'),
 }
 
-const Template: Story<ChatComponent> = (args: ChatComponent) => ({
+const Template: Story<ChatFeedComponent> = (args: ChatFeedComponent) => ({
   props: {
     ...args,
-    onSendMessage: actionsData.onSendMessage,
+    saveChanges: actionsData.saveChanges,
   },
 })
 // Default scenario
-export const DefaultChat = Template.bind({})
-DefaultChat.args = {
+export const DefaultChatFeed = Template.bind({})
+DefaultChatFeed.args = {
   messages: [
     {
-      time: new Date(), //'15:21',
+      _id: '12',
+      _userId: '23',
+      _created: new Date(), //'15:21',
       name: 'Michel Sagen',
       message:
         "Waiting for a few more before we begin, I'm keeping my microphone muted for now 😉",
-      isBroadcast: false,
     },
     {
-      time: new Date(), //'15:22',
+      _id: '34',
+      _userId: '23',
+      _created: new Date(), //'15:22',
       name: 'Meetingbot',
       message: 'Peng Mok joined.',
-      isBroadcast: false,
     },
     {
-      time: new Date(), //'15:23',
+      _id: '12',
+      _userId: '23',
+      _created: new Date(), //'15:23',
       name: 'Meetingbot',
       message: 'Lars Bergendahl joined.',
-      isBroadcast: false,
     },
     {
-      time: new Date(), //'15:24',
+      _id: '12',
+      _userId: '23',
+      _created: new Date(), //'15:24',
       name: 'Lars Bergendahl',
       message:
         'When did we get chat? Is the backend ready to handle the massive amount of traffic we willl get?',
-      isBroadcast: false,
     },
     {
-      time: new Date(), //'15:24',
+      _id: '12',
+      _userId: '23',
+      _created: new Date(), //'15:24',
       name: 'Tom Erik Lia',
       message: 'Looks like I have another meeting, please email notes to me',
-      isBroadcast: false,
     },
     {
-      time: new Date(), //'15:24',
+      _id: '12',
+      _userId: '23',
+      _created: new Date(), //'15:24',
       name: 'Meetingbot',
       message: 'Tom Erik Lia left.',
-      isBroadcast: false,
     },
     {
-      time: new Date(), //'15:25',
+      _id: '12',
+      _userId: '23',
+      _created: new Date(), //'15:25',
       name: 'Krzystof Grzeslo',
       message:
         'Will ask Thomas to restart sleipnir chat on osl-mid3. Thomas has a plan to migrate to chat websockets: www.websocketsforbeginners.com',
-      isBroadcast: false,
     },
     {
-      time: new Date(), //'15:25',
+      _id: '12',
+      _userId: '23',
+      _created: new Date(), //'15:25',
       name: 'Michel Sagen',
       message:
         "I'm not sure about websockets. Chat already has a name - strongly suggest we do not change the name weeks before it is launched. Should we launch on desktop first?",
-      isBroadcast: false,
     },
   ],
 }

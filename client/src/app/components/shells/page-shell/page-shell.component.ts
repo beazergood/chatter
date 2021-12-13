@@ -1,29 +1,31 @@
 import { Component, OnInit } from '@angular/core'
 import { Observable, tap } from 'rxjs'
+// import { ChatStore } from 'src/app/chat.store'
 import { DataService } from 'src/app/data.service'
-import { Message } from '../../chat/chat.component'
-import { Participant } from '../../participants/participants.component'
+import { Participant } from '../../../data.interfaces'
 
 @Component({
   selector: 'app-page-shell',
   template: `
     <app-pure-page-shell
-      [messages]="serverMessages"
-      [participants]="participants"
-      (onSendMessage)="buttonClicked($event)"
+      [messages]="messages$"
+      [participants]="participants$ | async"
+      [userId]="userId$ | async"
+      (onSendMessage)="dataSvc.sendMessage($event)"
+      (onEditMessage)="dataSvc.editMessage($event)"
     >
     </app-pure-page-shell>
   `,
+  // providers: [ChatStore],
 })
 export default class PageShellComponent {
-  participants?: Participant[]
-  serverMessages: any
+  participants$?: Observable<any>
+  messages$: any[]
+  userId$: Observable<any>
 
-  constructor(private dataSvc: DataService) {
-    this.serverMessages = this.dataSvc.serverMessages
-  }
-
-  buttonClicked(ev: any) {
-    this.dataSvc.sendMessage(ev.message)
+  constructor(public dataSvc: DataService) {
+    this.messages$ = this.dataSvc.serverMessages
+    this.userId$ = this.dataSvc.currentUserId$
+    this.participants$ = this.dataSvc.participants$
   }
 }

@@ -1,8 +1,9 @@
 import { Story, Meta } from '@storybook/angular'
-import ParticipantsComponent, { Participant } from './participants.component'
+import ParticipantsComponent from './participants.component'
+import { Participant } from '../../data.interfaces'
 
 export default {
-  title: 'Components/Organisms/Participants',
+  title: 'Components/Participants',
   component: ParticipantsComponent,
   excludeStories: /.*Data$/,
   argTypes: {
@@ -18,20 +19,20 @@ const Template: Story<ParticipantsComponent> = (
 
 const participantsData: Participant[] = [
   {
-    firstname: 'Elon',
-    lastname: 'Musk',
+    _id: '12',
+    name: 'Elon Musk',
   },
   {
-    firstname: 'Jeff',
-    lastname: 'Bezos',
+    _id: '34',
+    name: 'Jeff Bezos',
   },
   {
-    firstname: 'JB',
-    lastname: 'Straubel',
+    _id: '56',
+    name: 'JB Straubel',
   },
   {
-    firstname: 'Reid',
-    lastname: 'Hoffman',
+    _id: '78',
+    name: 'Reid Hoffman',
   },
 ]
 // Default scenario

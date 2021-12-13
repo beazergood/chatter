@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core'
-import { Participant } from '../../../participants/participants.component'
+import { Participant } from '../../../../data.interfaces'
 
 @Component({
   selector: 'app-pure-page-shell',
@@ -46,18 +46,25 @@ import { Participant } from '../../../participants/participants.component'
             }"
             class="flex flex-col flex-1"
           >
-            <app-chat
+            <!-- CHAT TAB -->
+            <app-chat-feed
               [messages]="messages"
-              (onSendMessage)="onSendMessage.emit($event)"
+              [userId]="userId"
+              (saveChanges)="onEditMessage.emit($event)"
             >
-            </app-chat>
+            </app-chat-feed>
             <div class="flex-1"></div>
             <app-message-form
               (sendMessage)="onSendMessage.emit($event)"
             ></app-message-form>
           </div>
+
           <div [ngClass]="{ hidden: openTab !== 2, block: openTab === 2 }">
-            <app-participants [participants]="participants"></app-participants>
+            <!-- PARTICIPANTS TAB -->
+            <app-participants
+              [participants]="participants"
+              [userId]="userId"
+            ></app-participants>
           </div>
         </div>
       </div>
@@ -67,7 +74,11 @@ import { Participant } from '../../../participants/participants.component'
 export default class PurePageShellComponent {
   @Input() messages?: any
   @Input() participants?: Participant[]
+  @Input() participantsCount: any = 0
+  @Input() userId?: string
+
   @Output() onSendMessage: EventEmitter<any> = new EventEmitter()
+  @Output() onEditMessage: EventEmitter<any> = new EventEmitter()
 
   openTab = 1
   toggleTabs($tabNumber: number) {

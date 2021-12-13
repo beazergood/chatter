@@ -1,27 +1,4 @@
-import { Component, Input } from '@angular/core'
-export const participantsData = [
-  {
-    firstname: 'Elon',
-    lastname: 'Musk',
-  },
-  {
-    firstname: 'Jeff',
-    lastname: 'Bezos',
-  },
-  {
-    firstname: 'JB',
-    lastname: 'Straubel',
-  },
-  {
-    firstname: 'Reid',
-    lastname: 'Hoffman',
-  },
-]
-
-export interface Participant {
-  firstname: string
-  lastname: string
-}
+import { Component, Input, OnChanges } from '@angular/core'
 
 @Component({
   selector: 'app-participants',
@@ -33,13 +10,21 @@ export interface Participant {
             *ngFor="let participant of participants"
             class="p-4 border-b border-gray-200"
           >
-            {{ participant.firstname }} {{ participant.lastname }}
+            {{ participant.name }}
+            <span *ngIf="participant._id === userId">👈 YOU</span>
           </li>
         </ul>
       </ng-container>
     </div>
   `,
 })
-export default class ParticipantsComponent {
-  @Input() participants?: Participant[]
+export default class ParticipantsComponent implements OnChanges {
+  @Input() userId?: string
+  @Input() participants?: any = []
+
+  ngOnChanges(changes: any) {
+    console.log('changes: ', changes)
+    if (changes.userId && !changes.userId.firstChange) {
+    }
+  }
 }
