@@ -1,5 +1,6 @@
 import { action } from '@storybook/addon-actions'
 import { Story, Meta, moduleMetadata } from '@storybook/angular'
+import { ReactiveFormsModule, FormBuilder } from '@angular/forms'
 import ChatFeedComponent from './chat-feed.component'
 import ChatItemComponent from '../chat-item/chat-item.component'
 
@@ -9,6 +10,8 @@ export default {
   excludeStories: /.*Data$/,
   decorators: [
     moduleMetadata({
+      imports: [ReactiveFormsModule],
+      providers: [FormBuilder],
       declarations: [ChatFeedComponent, ChatItemComponent],
     }),
   ],

@@ -5,34 +5,48 @@ import { Message } from 'src/app/data.interfaces'
 @Component({
   selector: 'app-chat-item',
   template: `
-    <p>
-      <span class="font-semibold mr-2">{{ msg.name }}</span>
-      <span class="text-gray-400">{{ msg._created | date: 'HH:mm' }}</span>
-    </p>
-    <p *ngIf="!editing">{{ msg.message }}</p>
-    <p class="text-xs text-gray-600" *ngIf="msg._modified">Edited</p>
-    <ng-container *ngIf="editing">
-      <p>Editing</p>
-      <form [formGroup]="msgForm">
-        <fieldset>
-          <div class="mb-4">
-            <input
-              class="shadow appearance-none rounded w-full py-2 px-3 border
+    <div class="flex flex-row">
+      <div class="flex-1">
+        <p>
+          <span class="font-semibold mr-2">{{ msg.name }}</span>
+          <span class="text-gray-400">{{ msg._created | date: 'HH:mm' }}</span>
+          <span class="pl-1 ml-1 text-xs text-gray-400" *ngIf="msg._modified"
+            >&nbsp; Edited</span
+          >
+        </p>
+        <p *ngIf="!editing">{{ msg.message }}</p>
+        <ng-container *ngIf="editing">
+          <form [formGroup]="msgForm">
+            <fieldset>
+              <div class="mb-4">
+                <input
+                  class="shadow appearance-none rounded w-full py-2 px-3 border
      text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="name"
-              data-testid="name"
-              type="text"
-              placeholder="Message"
-              formControlName="message"
-            />
-          </div>
-        </fieldset>
-        <button class="" (click)="save()">Save changes</button>
-      </form>
-    </ng-container>
-    <button *ngIf="msg._id && msg._userId === userId" (click)="editMessage()">
-      Edit
-    </button>
+                  id="name"
+                  data-testid="name"
+                  type="text"
+                  placeholder="Message"
+                  formControlName="message"
+                />
+              </div>
+            </fieldset>
+            <button
+              class="p-2 bg-purple-400 rounded-md text-white"
+              (click)="save()"
+            >
+              Save changes
+            </button>
+          </form>
+        </ng-container>
+      </div>
+      <button
+        class="w-14 h-14 hover:bg-gray-100 rounded-full "
+        *ngIf="msg._id && msg._userId === userId && !editing"
+        (click)="editMessage()"
+      >
+        <i class="fa fa-pencil"></i>
+      </button>
+    </div>
   `,
 })
 export default class ChatItemComponent implements OnInit {

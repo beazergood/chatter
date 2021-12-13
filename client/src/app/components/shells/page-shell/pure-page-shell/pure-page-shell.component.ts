@@ -17,7 +17,6 @@ import { Participant } from '../../../../data.interfaces'
               'bg-white': openTab === 1
             }"
           >
-            <i class="fas fa-space-shuttle text-base mr-1"></i>
             Chat
           </a>
         </li>
@@ -30,7 +29,6 @@ import { Participant } from '../../../../data.interfaces'
               'bg-white': openTab === 2
             }"
           >
-            <i class="fas fa-cog text-base mr-1"></i>
             Participants (
             {{ participants?.length }})
           </a>
